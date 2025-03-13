@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <base target="_top">
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        padding: 10px;
+      }
+      .form-group {
+        margin-bottom: 15px;
+      }
+      label {
+        display: block;
+        margin-bottom: 5px;
+        font-weight: bold;
+      }
+      input[type="text"] {
+        width: 100%;
+        padding: 8px;
+        box-sizing: border-box;
+      }
+      .btn {
+        background-color: #4285f4;
+        color: white;
+        border: none;
+        padding: 10px 15px;
+        cursor: pointer;
+        border-radius: 4px;
+      }
+    </style>
+  </head>
+  <body>
+    <h2>AdaForms Configuration</h2>
+    
+    <div class="form-group">
+      <label for="apiEndpoint">API Endpoint:</label>
+      <input type="text" id="apiEndpoint" value="https://your-nextjs-api.vercel.app/api/formhash">
+    </div>
+    
+    <div class="form-group">
+      <label for="apiKey">API Key (if any):</label>
+      <input type="text" id="apiKey">
+    </div>
+    
+    <div class="form-group">
+      <button class="btn" id="saveBtn">Save Configuration</button>
+    </div>
+    
+    <hr>
+    
+    <div class="form-group">
+      <button class="btn" id="enableTriggerBtn">Enable Automatic Verification</button>
+    </div>
+    
+    <script>
+      // Save configuration to user properties
+      document.getElementById('saveBtn').addEventListener('click', function() {
+        const apiEndpoint = document.getElementById('apiEndpoint').value;
+        const apiKey = document.getElementById('apiKey').value;
+        
+        google.script.run
+          .withSuccessHandler(function() {
+            alert('Configuration saved successfully!');
+          })
+          .withFailureHandler(function(error) {
+            alert('Error: ' + error);
+          })
+          .saveConfiguration(apiEndpoint, apiKey);
+      });
+      
+      // Enable form submit trigger
+      document.getElementById('enableTriggerBtn').addEventListener('click', function() {
+        google.script.run
+          .withSuccessHandler(function() {
+            alert('Automatic verification enabled!');
+          })
+          .withFailureHandler(function(error) {
+            alert('Error: ' + error);
+          })
+          .createFormTrigger();
+      });
+    </script>
+  </body>
+</html>
