@@ -1,32 +1,7 @@
 {
-    "timeZone": "America/New_York",
-    "dependencies": {
-    },
-    "exceptionLogging": "STACKDRIVER",
-    "runtimeVersion": "V8",
-    "oauthScopes": [
-      "https://www.googleapis.com/auth/script.container.ui",
-      "https://www.googleapis.com/auth/forms.currentonly",
-      "https://www.googleapis.com/auth/script.scriptapp",
-      "https://www.googleapis.com/auth/script.external_request"
-    ],
-    "addOns": {
-      "common": {
-        "name": "AdaForms",
-        "logoUrl": "https://www.example.com/logo.png",
-        "homepageTrigger": {
-          "runFunction": "onHomepage",
-          "enabled": true
-        }
-      },
-      "forms": {
-        "homepageTrigger": {
-          "runFunction": "onHomepage",
-          "enabled": true
-        },
-        "onFormSubmit": {
-          "runFunction": "onFormSubmit"
-        }
-      }
-    }
-  }
+  "timeZone": "America/New_York",
+  "dependencies": {
+  },
+  "exceptionLogging": "STACKDRIVER",
+  "runtimeVersion": "V8"
+}

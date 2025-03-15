@@ -7,7 +7,7 @@
 var ApiService = (function() {
     // API configuration
     // This should be made configurable in a production implementation
-    const API_BASE_URL = 'https://your-api-domain.com/api'; // Replace with your actual API URL
+    const API_BASE_URL = 'https://adaforms-demo-api.vercel.app/api'; // Replace with your actual API URL
     const API_ENDPOINTS = {
       STORE_HASH: '/hash', // Based on your Next.js route implementation
       VERIFY_HASH: '/verify'
