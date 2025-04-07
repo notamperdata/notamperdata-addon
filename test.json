@@ -1,0 +1,23 @@
+{
+    "name": "lucid-cardano-project",
+    "version": "1.0.0",
+    "description": "A Cardano dApp using Lucid",
+    "main": "index.js",
+    "type": "module",
+    "scripts": {
+      "start": "node index.js",
+      "dev": "nodemon index.js",
+      "test": "jest"
+    },
+    "dependencies": {
+      "lucid-cardano": "^0.10.7",
+      "dotenv": "^16.3.1"
+    },
+    "devDependencies": {
+      "nodemon": "^3.0.1",
+      "jest": "^29.7.0",
+      "typescript": "^5.2.2",
+      "ts-node": "^10.9.1",
+      "@types/node": "^20.8.2"
+    }
+  }

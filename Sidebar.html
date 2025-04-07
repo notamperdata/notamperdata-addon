@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <base target="_top">
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        padding: 12px;
+        color: #202124;
+      }
+      .form-group {
+        margin-bottom: 16px;
+      }
+      .section {
+        margin-bottom: 24px;
+        padding-bottom: 16px;
+        border-bottom: 1px solid #e0e0e0;
+      }
+      .section-header {
+        font-size: 16px;
+        font-weight: 500;
+        margin-bottom: 12px;
+        color: #1a73e8;
+      }
+      .btn {
+        background-color: #1a73e8;
+        color: white;
+        border: none;
+        padding: 8px 16px;
+        font-size: 14px;
+        cursor: pointer;
+        border-radius: 4px;
+        font-weight: 500;
+      }
+      .btn:hover {
+        background-color: #1765cc;
+      }
+      .secondary-btn {
+        background-color: #f1f3f4;
+        color: #202124;
+        border: 1px solid #dadce0;
+      }
+      .secondary-btn:hover {
+        background-color: #e8eaed;
+      }
+      .message {
+        padding: 8px 12px;
+        margin: 16px 0;
+        border-radius: 4px;
+        font-size: 14px;
+      }
+      .success {
+        background-color: #e6f4ea;
+        color: #137333;
+        border: 1px solid #137333;
+      }
+      .error {
+        background-color: #fce8e6;
+        color: #c5221f;
+        border: 1px solid #c5221f;
+      }
+      .info {
+        background-color: #e8f0fe;
+        color: #1967d2;
+        border: 1px solid #d2e3fc;
+      }
+      .hidden {
+        display: none;
+      }
+      .status-badge {
+        display: inline-block;
+        padding: 2px 8px;
+        border-radius: 12px;
+        font-size: 12px;
+        font-weight: 500;
+      }
+      .badge-enabled {
+        background-color: #e6f4ea;
+        color: #137333;
+      }
+      .badge-disabled {
+        background-color: #fce8e6;
+        color: #c5221f;
+      }
+      .api-info {
+        background-color: #f8f9fa;
+        padding: 10px;
+        border-radius: 4px;
+        margin-bottom: 16px;
+        font-family: monospace;
+        font-size: 13px;
+      }
+      .logo {
+        text-align: center;
+        margin-bottom: 20px;
+      }
+      .logo h1 {
+        color: #1a73e8;
+        font-size: 24px;
+        margin: 0;
+      }
+      .logo small {
+        color: #5f6368;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="logo">
+      <h1>Adaverc Demo</h1>
+      <small>Form Response Verification</small>
+    </div>
+    
+    <div id="status-message" class="message hidden"></div>
+    
+    <div class="section">
+      <div class="section-header">API Connection</div>
+      <p>Your form responses will be hashed and sent to:</p>
+      <div class="api-info" id="api-endpoint">Loading...</div>
+    </div>
+    
+    <div class="section">
+      <div class="section-header">Automatic Hash Recording</div>
+      <p>When enabled, each form submission will be automatically hashed and recorded.</p>
+      
+      <div id="trigger-status" class="form-group">
+        <label>Current Status:</label>
+        <div id="status-badge" class="status-badge badge-disabled">Disabled</div>
+      </div>
+      
+      <div class="form-group">
+        <button class="btn" id="enableTriggerBtn">Enable Automatic Recording</button>
+        <button class="btn secondary-btn hidden" id="disableTriggerBtn">Disable Automatic Recording</button>
+      </div>
+    </div>
+    
+    <div class="section">
+      <div class="section-header">Test Functionality</div>
+      <p>Process the most recent form response to test the hashing system.</p>
+      
+      <div class="form-group">
+        <button class="btn secondary-btn" id="testBtn">Test With Latest Response</button>
+      </div>
+      <div id="test-result" class="message info hidden"></div>
+    </div>
+    
+    <script>
+      // Display the hardcoded API endpoint
+      document.getElementById('api-endpoint').textContent = "<?= API_ENDPOINT ?>";
+      
+      // Check if trigger is enabled
+      google.script.run
+        .withSuccessHandler(function(isEnabled) {
+          updateTriggerStatus(isEnabled);
+        })
+        .isTriggerEnabled();
+      
+      // Helper function to show messages
+      function showMessage(message, type) {
+        const msgElement = document.getElementById('status-message');
+        msgElement.textContent = message;
+        msgElement.className = 'message ' + type;
+        msgElement.classList.remove('hidden');
+        
+        // Hide message after 5 seconds
+        setTimeout(function() {
+          msgElement.classList.add('hidden');
+        }, 5000);
+      }
+      
+      // Update trigger status UI
+      function updateTriggerStatus(isEnabled) {
+        const statusBadge = document.getElementById('status-badge');
+        const enableBtn = document.getElementById('enableTriggerBtn');
+        const disableBtn = document.getElementById('disableTriggerBtn');
+        
+        if (isEnabled) {
+          statusBadge.textContent = 'Enabled';
+          statusBadge.className = 'status-badge badge-enabled';
+          enableBtn.classList.add('hidden');
+          disableBtn.classList.remove('hidden');
+        } else {
+          statusBadge.textContent = 'Disabled';
+          statusBadge.className = 'status-badge badge-disabled';
+          enableBtn.classList.remove('hidden');
+          disableBtn.classList.add('hidden');
+        }
+      }
+      
+      // Enable form submit trigger
+      document.getElementById('enableTriggerBtn').addEventListener('click', function() {
+        google.script.run
+          .withSuccessHandler(function() {
+            showMessage('Automatic hash recording enabled!', 'success');
+            updateTriggerStatus(true);
+          })
+          .withFailureHandler(function(error) {
+            showMessage('Error: ' + error, 'error');
+          })
+          .createFormTrigger();
+      });
+      
+      // Disable form submit trigger
+      document.getElementById('disableTriggerBtn').addEventListener('click', function() {
+        google.script.run
+          .withSuccessHandler(function() {
+            showMessage('Automatic hash recording disabled!', 'success');
+            updateTriggerStatus(false);
+          })
+          .withFailureHandler(function(error) {
+            showMessage('Error: ' + error, 'error');
+          })
+          .removeTrigger();
+      });
+      
+      // Test with latest response
+      document.getElementById('testBtn').addEventListener('click', function() {
+        const testResult = document.getElementById('test-result');
+        testResult.textContent = 'Processing latest response...';
+        testResult.className = 'message info';
+        testResult.classList.remove('hidden');
+        
+        google.script.run
+          .withSuccessHandler(function(result) {
+            if (result.success) {
+              testResult.textContent = 'Success! Hash: ' + result.hash + ' was sent to the API.';
+              testResult.className = 'message success';
+            } else if (result.error) {
+              testResult.textContent = 'Error: ' + result.error;
+              testResult.className = 'message error';
+            } else {
+              testResult.textContent = 'No recent responses found to process.';
+              testResult.className = 'message info';
+            }
+          })
+          .withFailureHandler(function(error) {
+            testResult.textContent = 'Error: ' + error;
+            testResult.className = 'message error';
+          })
+          .processLatestResponse();
+      });
+    </script>
+  </body>
+</html>
