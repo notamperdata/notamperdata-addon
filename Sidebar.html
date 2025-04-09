@@ -4,61 +4,38 @@
     <base target="_top">
     <style>
       body {
-        font-family: 'Google Sans', 'Roboto', Arial, sans-serif;
-        padding: 12px;
-        color: #202124;
-        background-color: #ffffff;
+        font-family: Arial, sans-serif;
+        padding: 16px;
+        color: #333;
         margin: 0;
         line-height: 1.5;
       }
       .container {
-        max-width: 800px;
+        max-width: 100%;
         margin: 0 auto;
-        background-color: #ffffff;
-        border-radius: 8px;
-        box-shadow: 0 1px 2px 0 rgba(60,64,67,0.3), 0 2px 6px 2px rgba(60,64,67,0.15);
-        padding: 20px;
       }
-      .form-group {
-        margin-bottom: 16px;
+      .header {
+        text-align: center;
+        margin-bottom: 20px;
+        padding: 12px 0;
+        background-color: #0033AD; /* Cardano blue */
+        color: white;
+        border-radius: 4px;
+      }
+      .header h1 {
+        font-size: 20px;
+        margin: 0;
       }
       .section {
-        margin-bottom: 24px;
-        padding-bottom: 16px;
+        margin-bottom: 20px;
+        padding-bottom: 12px;
         border-bottom: 1px solid #e0e0e0;
       }
-      .section-header {
-        font-size: 16px;
+      .section-title {
+        font-size: 14px;
         font-weight: 500;
-        margin-bottom: 12px;
+        margin-bottom: 8px;
         color: #0033AD; /* Cardano blue */
-        padding-left: 8px;
-        border-left: 4px solid #0033AD;
-      }
-      
-      .google-green {
-        background-color: #34A853;
-        color: white;
-      }
-      
-      .google-yellow {
-        background-color: #FBBC05;
-        color: white;
-      }
-      
-      .google-red {
-        background-color: #EA4335;
-        color: white;
-      }
-      
-      .google-blue {
-        background-color: #4285F4;
-        color: white;
-      }
-      
-      .cardano-blue {
-        background-color: #0033AD;
-        color: white;
       }
       .btn {
         background-color: #0033AD; /* Cardano blue */
@@ -69,22 +46,18 @@
         cursor: pointer;
         border-radius: 4px;
         font-weight: 500;
-        transition: background-color 0.2s;
       }
       .btn:hover {
-        background-color: #002A8C; /* Darker Cardano blue */
+        background-color: #002A8C; /* Darker blue */
       }
       .secondary-btn {
         background-color: #f1f3f4;
-        color: #202124;
+        color: #333;
         border: 1px solid #dadce0;
-      }
-      .secondary-btn:hover {
-        background-color: #e8eaed;
       }
       .message {
         padding: 8px 12px;
-        margin: 16px 0;
+        margin: 12px 0;
         border-radius: 4px;
         font-size: 14px;
       }
@@ -121,116 +94,61 @@
         background-color: #fce8e6;
         color: #EA4335; /* Google red */
       }
-      .api-info {
-        background-color: #f1f3f4;
-        padding: 12px;
-        border-radius: 4px;
-        margin-bottom: 16px;
-        font-family: 'Roboto Mono', monospace;
-        font-size: 13px;
-        border-left: 4px solid #0033AD;
-      }
-      .logo {
-        text-align: center;
-        margin-bottom: 20px;
-        padding: 16px 0;
-        background: linear-gradient(135deg, #0033AD, #4285F4); /* Blend of Cardano blue to Google blue */
-        border-radius: 8px 8px 0 0;
-        color: white;
-      }
-      .logo h1 {
-        color: white;
-        font-size: 24px;
-        margin: 0;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-      }
-      .logo small {
-        color: rgba(255, 255, 255, 0.8);
-      }
-      .logo-icon {
-        width: 32px;
-        height: 32px;
-        margin-right: 8px;
-        display: inline-block;
-        background-color: white;
-        border-radius: 50%;
-        position: relative;
-      }
-      .logo-icon::before {
-        content: '';
-        position: absolute;
-        width: 20px;
-        height: 20px;
-        background-color: #0033AD;
-        border-radius: 50%;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-      }
-      label {
-        font-weight: 500;
-        color: #5f6368;
-        display: block;
-        margin-bottom: 8px;
-      }
-      .divider {
-        height: 1px;
-        background-color: #e0e0e0;
-        margin: 16px 0;
-      }
     </style>
   </head>
   <body>
     <div class="container">
-      <div class="logo">
-        <h1><span class="logo-icon"></span>Adaverc Demo</h1>
+      <div class="header">
+        <h1>Adaverc Demo</h1>
         <small>Form Response Verification</small>
       </div>
       
       <div id="status-message" class="message hidden"></div>
       
       <div class="section">
-        <div class="section-header">API Connection</div>
-        <p>Your form responses will be hashed and sent to:</p>
-        <div class="api-info" id="api-endpoint">Loading...</div>
+        <div class="section-title">Current Form</div>
+        <p id="form-info">Loading form information...</p>
       </div>
       
       <div class="section">
-        <div class="section-header">Automatic Hash Recording</div>
-        <p>When enabled, each form submission will be automatically hashed and recorded on the Cardano blockchain.</p>
+        <div class="section-title">Automatic Hash Recording</div>
+        <p>When enabled, each form submission will be automatically hashed and recorded.</p>
         
-        <div id="trigger-status" class="form-group">
+        <div id="trigger-status">
           <label>Current Status:</label>
           <div id="status-badge" class="status-badge badge-disabled">Disabled</div>
         </div>
         
-        <div class="form-group">
+        <div style="margin-top: 12px;">
           <button class="btn" id="enableTriggerBtn">Enable Automatic Recording</button>
-          <button class="btn secondary-btn hidden" id="disableTriggerBtn">Disable Automatic Recording</button>
+          <button class="btn secondary-btn hidden" id="disableTriggerBtn">Disable Recording</button>
         </div>
       </div>
       
       <div class="section">
-        <div class="section-header">Test Functionality</div>
-        <p>Process the most recent form response to test the hashing system.</p>
+        <div class="section-title">Test Functionality</div>
+        <p>Process the most recent form response to test the system.</p>
         
-        <div class="form-group">
+        <div>
           <button class="btn secondary-btn" id="testBtn">Test With Latest Response</button>
         </div>
         <div id="test-result" class="message info hidden"></div>
       </div>
       
-      <div class="divider"></div>
-      <div style="text-align: center; font-size: 12px; color: #5f6368;">
-        Powered by Cardano blockchain technology
+      <div style="text-align: center; font-size: 12px; color: #666; margin-top: 20px;">
+        Powered by Adaverc blockchain verification
       </div>
     </div>
     
     <script>
-      // Display the hardcoded API endpoint
-      document.getElementById('api-endpoint').textContent = "<?= API_ENDPOINT ?>";
+      // Load form information
+      google.script.run
+        .withSuccessHandler(function(formInfo) {
+          document.getElementById('form-info').innerHTML = 
+            '<strong>Title:</strong> ' + formInfo.title + '<br>' +
+            '<strong>ID:</strong> ' + formInfo.id;
+        })
+        .getFormInfo();
       
       // Check if trigger is enabled
       google.script.run
@@ -307,7 +225,7 @@
         google.script.run
           .withSuccessHandler(function(result) {
             if (result.success) {
-              testResult.textContent = 'Success! Hash: ' + result.hash + ' was sent to the API.';
+              testResult.textContent = 'Success! Response processed with hash: ' + result.hash;
               testResult.className = 'message success';
             } else if (result.error) {
               testResult.textContent = 'Error: ' + result.error;

@@ -119,22 +119,29 @@ function onFormSubmit(e) {
     const formResponse = e.response;
     const responseData = FormHandler.extractResponseData(formResponse);
     const hash = Hashing.hashResponseData(responseData);
+    
     const metadata = {
       formId: formResponse.getFormId(),
       responseId: formResponse.getId(),
       timestamp: new Date().toISOString()
     };
     
+    // Log key information for troubleshooting
+    console.log(`Processing response ${metadata.responseId} with hash: ${hash}`);
+    
     // Send hash to API
     const result = ApiClient.sendHashToApi(hash, metadata);
     
-    // Log for verification
-    console.log(`Response processed: ${metadata.responseId} with hash: ${hash}`);
+    if (result.error) {
+      console.error(`API error: ${result.error}`);
+      return { success: false, error: result.error };
+    }
     
-    return result;
+    console.log(`Response processed successfully: ${metadata.responseId}`);
+    return { success: true, hash: hash };
   } catch (error) {
     console.error(`Error processing submission: ${error.toString()}`);
-    return { error: error.toString() };
+    return { success: false, error: error.toString() };
   }
 }
 
