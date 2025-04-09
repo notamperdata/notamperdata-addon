@@ -94,6 +94,30 @@
         background-color: #fce8e6;
         color: #EA4335; /* Google red */
       }
+      .api-key-box {
+        background-color: #f8f9fa;
+        border: 1px solid #dadce0;
+        border-radius: 4px;
+        padding: 8px 12px;
+        font-family: 'Courier New', monospace;
+        font-size: 12px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        margin-top: 8px;
+      }
+      .copy-btn {
+        background: none;
+        border: none;
+        color: #0033AD;
+        cursor: pointer;
+        font-size: 12px;
+        padding: 4px;
+        float: right;
+      }
+      .copy-btn:hover {
+        text-decoration: underline;
+      }
     </style>
   </head>
   <body>
@@ -108,6 +132,33 @@
       <div class="section">
         <div class="section-title">Current Form</div>
         <p id="form-info">Loading form information...</p>
+      </div>
+      
+      <div class="section">
+        <div class="section-title">API Key</div>
+        <p>Connect your Adaverc account:</p>
+        <div id="api-key-container">
+          <div id="api-key-status" class="message info">
+            Please enter your Adaverc API key.
+          </div>
+          <div style="display: flex; margin-top: 8px;">
+            <input type="text" id="api-key-input" placeholder="Enter API key" 
+                   style="flex: 1; padding: 8px; border: 1px solid #dadce0; border-radius: 4px 0 0 4px; font-size: 14px;">
+            <button class="btn" id="save-api-key-btn" style="border-radius: 0 4px 4px 0;">Save</button>
+          </div>
+          <p class="info-text" style="font-size: 11px; color: #5f6368; margin-top: 4px;">
+            Get your API key from the <a href="https://adaforms-demo-api.vercel.app/" target="_blank">Adaverc Dashboard</a>
+          </p>
+        </div>
+        <div id="api-key-display-container" class="hidden">
+          <div class="api-key-box" id="api-key-display">
+            <span id="api-key-value">••••••••••••••••••••••••</span>
+            <button class="copy-btn" onclick="copyApiKey()">Copy</button>
+          </div>
+          <div style="text-align: right; margin-top: 4px;">
+            <button class="secondary-btn" id="change-api-key-btn" style="font-size: 12px; padding: 4px 8px;">Change Key</button>
+          </div>
+        </div>
       </div>
       
       <div class="section">
@@ -157,6 +208,15 @@
         })
         .isTriggerEnabled();
       
+      // Check if API key is already stored
+      google.script.run
+        .withSuccessHandler(function(apiKey) {
+          if (apiKey) {
+            showApiKey(apiKey);
+          }
+        })
+        .getApiKey();
+      
       // Helper function to show messages
       function showMessage(message, type) {
         const msgElement = document.getElementById('status-message');
@@ -188,6 +248,73 @@
           disableBtn.classList.add('hidden');
         }
       }
+      
+      // Copy API key to clipboard
+      function copyApiKey() {
+        const apiKeyElement = document.getElementById('api-key-value');
+        
+        google.script.run
+          .withSuccessHandler(function(apiKey) {
+            // Create a temporary text area element to copy from
+            const textArea = document.createElement('textarea');
+            textArea.value = apiKey;
+            document.body.appendChild(textArea);
+            textArea.select();
+            
+            try {
+              document.execCommand('copy');
+              showMessage('API key copied to clipboard!', 'success');
+            } catch (err) {
+              showMessage('Failed to copy API key', 'error');
+            }
+            
+            document.body.removeChild(textArea);
+          })
+          .getApiKey();
+      }
+      
+      // Show API key UI (when key exists)
+      function showApiKey(apiKey) {
+        // Show last 4 characters, hide the rest
+        const lastFour = apiKey.slice(-4);
+        const maskedKey = '•'.repeat(apiKey.length - 4) + lastFour;
+        
+        document.getElementById('api-key-value').textContent = maskedKey;
+        document.getElementById('api-key-container').classList.add('hidden');
+        document.getElementById('api-key-display-container').classList.remove('hidden');
+      }
+      
+      // Handle saving API key
+      document.getElementById('save-api-key-btn').addEventListener('click', function() {
+        const apiKeyInput = document.getElementById('api-key-input');
+        const apiKey = apiKeyInput.value.trim();
+        
+        if (!apiKey) {
+          showMessage('Please enter a valid API key', 'error');
+          return;
+        }
+        
+        google.script.run
+          .withSuccessHandler(function(result) {
+            if (result.success) {
+              showMessage('API key saved successfully!', 'success');
+              showApiKey(apiKey);
+              apiKeyInput.value = '';
+            } else {
+              showMessage('Error: ' + (result.error || 'Failed to save API key'), 'error');
+            }
+          })
+          .withFailureHandler(function(error) {
+            showMessage('Error: ' + error, 'error');
+          })
+          .saveApiKey(apiKey);
+      });
+      
+      // Handle changing API key
+      document.getElementById('change-api-key-btn').addEventListener('click', function() {
+        document.getElementById('api-key-container').classList.remove('hidden');
+        document.getElementById('api-key-display-container').classList.add('hidden');
+      });
       
       // Enable form submit trigger
       document.getElementById('enableTriggerBtn').addEventListener('click', function() {

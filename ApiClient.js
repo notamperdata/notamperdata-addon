@@ -7,9 +7,10 @@ var ApiClient = (function() {
    * Sends hash and metadata to external API.
    * @param {String} hash - The generated hash
    * @param {Object} metadata - Metadata about the response
+   * @param {String} apiKey - Optional API key for authentication
    * @return {Object} API response
    */
-  function sendHashToApi(hash, metadata) {
+  function sendHashToApi(hash, metadata, apiKey) {
     const payload = {
       hash: hash,
       metadata: metadata
@@ -22,10 +23,17 @@ var ApiClient = (function() {
       'muteHttpExceptions': true
     };
     
+    // Add API key to headers if provided
+    if (apiKey) {
+      options.headers = {
+        'Authorization': 'Bearer ' + apiKey
+      };
+    }
+    
     try {
-      console.log(`Sending hash to API: ${API_ENDPOINT}/storehash`);
+      console.log(`Sending hash to API: ${API_ENDPOINT}/formhash`);
       
-      const response = UrlFetchApp.fetch(API_ENDPOINT + "/storehash", options);
+      const response = UrlFetchApp.fetch(API_ENDPOINT + "/formhash", options);
       const responseCode = response.getResponseCode();
       const contentText = response.getContentText();
       
@@ -51,9 +59,10 @@ var ApiClient = (function() {
   /**
    * Verifies a hash against the API.
    * @param {String} hash - The hash to verify
+   * @param {String} apiKey - Optional API key for authentication
    * @return {Object} Verification result
    */
-  function verifyHash(hash) {
+  function verifyHash(hash, apiKey) {
     const payload = {
       hash: hash
     };
@@ -64,6 +73,13 @@ var ApiClient = (function() {
       'payload': JSON.stringify(payload),
       'muteHttpExceptions': true
     };
+    
+    // Add API key to headers if provided
+    if (apiKey) {
+      options.headers = {
+        'Authorization': 'Bearer ' + apiKey
+      };
+    }
     
     try {
       console.log(`Verifying hash with API: ${API_ENDPOINT}/verify`);

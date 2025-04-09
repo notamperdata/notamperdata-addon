@@ -39,6 +39,42 @@ function getFormInfo() {
 }
 
 /**
+ * Get stored API key if it exists.
+ */
+function getApiKey() {
+  const userProperties = PropertiesService.getUserProperties();
+  return userProperties.getProperty('API_KEY') || '';
+}
+
+/**
+ * Save API key to user properties.
+ */
+function saveApiKey(apiKey) {
+  try {
+    // Validate the API key (basic format check)
+    if (!apiKey || apiKey.length < 10) {
+      return { 
+        success: false, 
+        error: 'Invalid API key format'
+      };
+    }
+    
+    // In a production version, you might verify the API key with your server
+    // For demo purposes, just save it
+    const userProperties = PropertiesService.getUserProperties();
+    userProperties.setProperty('API_KEY', apiKey);
+    
+    return { success: true };
+  } catch (error) {
+    console.error('Error saving API key:', error);
+    return { 
+      success: false, 
+      error: error.toString() 
+    };
+  }
+}
+
+/**
  * Creates a form submit trigger.
  */
 function createFormTrigger() {
@@ -94,6 +130,12 @@ function onFormSubmit(e) {
     // Log the start of processing
     console.log("Processing form submission");
     
+    // Check if API key is available
+    const apiKey = getApiKey();
+    if (!apiKey) {
+      console.warn("No API key configured, continuing without authentication");
+    }
+    
     const formResponse = e.response;
     const responseData = FormHandler.extractResponseData(formResponse);
     const hash = Hashing.hashResponseData(responseData);
@@ -107,8 +149,8 @@ function onFormSubmit(e) {
     // Log key information
     console.log(`Generated hash: ${hash} for response ID: ${metadata.responseId}`);
     
-    // Send hash to API
-    const result = ApiClient.sendHashToApi(hash, metadata);
+    // Send hash to API with API key if available
+    const result = ApiClient.sendHashToApi(hash, metadata, apiKey);
     
     if (result.error) {
       console.error(`API error: ${JSON.stringify(result)}`);
@@ -141,6 +183,12 @@ function processLatestResponse() {
   try {
     console.log(`Processing latest response (ID: ${latestResponse.getId()})`);
     
+    // Check if API key is available
+    const apiKey = getApiKey();
+    if (!apiKey) {
+      console.warn("No API key configured, continuing without authentication");
+    }
+    
     const responseData = FormHandler.extractResponseData(latestResponse);
     const hash = Hashing.hashResponseData(responseData);
     const metadata = {
@@ -149,8 +197,8 @@ function processLatestResponse() {
       timestamp: latestResponse.getTimestamp().toISOString()
     };
     
-    // Send hash to API
-    const result = ApiClient.sendHashToApi(hash, metadata);
+    // Send hash to API with API key if available
+    const result = ApiClient.sendHashToApi(hash, metadata, apiKey);
     
     if (result.error) {
       console.error(`API error: ${JSON.stringify(result)}`);
