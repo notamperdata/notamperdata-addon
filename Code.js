@@ -1,4 +1,4 @@
-// HARDCODED API ENDPOINT - REPLACE WITH YOUR ACTUAL ENDPOINT
+// HARDCODED API ENDPOINT - Change this to match your API server
 const API_ENDPOINT = "https://adaforms-demo-api.vercel.app/api";
 
 /**
@@ -22,45 +22,20 @@ function onOpen(e) {
  * Shows a sidebar with configuration options.
  */
 function showSidebar() {
-  const ui = HtmlService.createHtmlOutputFromFile('Sidebar')
+  const ui = HtmlService.createHtmlOutputFromFile('SimpleSidebar')
     .setTitle('AdaForms Demo');
   FormApp.getUi().showSidebar(ui);
 }
 
 /**
- * Handler for form homepage.
+ * Get information about the current form.
  */
-function onFormsHomepage(e) {
-  return createHomepageCard();
-}
-
-/**
- * Creates card for add-on homepage.
- */
-function createHomepageCard() {
-  const builder = CardService.newCardBuilder();
-  
-  const section = CardService.newCardSection()
-    .addWidget(CardService.newTextParagraph()
-      .setText("AdaForms helps you verify the integrity of form responses using blockchain technology."));
-  
-  const setupButton = CardService.newTextButton()
-    .setText("Open AdaForms")
-    .setOnClickAction(CardService.newAction().setFunctionName("openAdaFormsSidebar"));
-  
-  section.addWidget(setupButton);
-  builder.addSection(section);
-  
-  return builder.build();
-}
-
-/**
- * Opens the sidebar
- */
-function openAdaFormsSidebar() {
-  return CardService.newActionResponseBuilder()
-    .setOpenByName("Sidebar")
-    .build();
+function getFormInfo() {
+  const form = FormApp.getActiveForm();
+  return {
+    title: form.getTitle(),
+    id: form.getId()
+  };
 }
 
 /**
@@ -112,10 +87,13 @@ function isTriggerEnabled() {
 }
 
 /**
- * Handles form submission trigger.
+ * Handles form submission with simplified error handling
  */
 function onFormSubmit(e) {
   try {
+    // Log the start of processing
+    console.log("Processing form submission");
+    
     const formResponse = e.response;
     const responseData = FormHandler.extractResponseData(formResponse);
     const hash = Hashing.hashResponseData(responseData);
@@ -126,22 +104,23 @@ function onFormSubmit(e) {
       timestamp: new Date().toISOString()
     };
     
-    // Log key information for troubleshooting
-    console.log(`Processing response ${metadata.responseId} with hash: ${hash}`);
+    // Log key information
+    console.log(`Generated hash: ${hash} for response ID: ${metadata.responseId}`);
     
     // Send hash to API
     const result = ApiClient.sendHashToApi(hash, metadata);
     
     if (result.error) {
-      console.error(`API error: ${result.error}`);
+      console.error(`API error: ${JSON.stringify(result)}`);
       return { success: false, error: result.error };
     }
     
     console.log(`Response processed successfully: ${metadata.responseId}`);
-    return { success: true, hash: hash };
+    return { success: true, hash: hash, apiResult: result };
   } catch (error) {
-    console.error(`Error processing submission: ${error.toString()}`);
-    return { success: false, error: error.toString() };
+    const errorMsg = `Error processing submission: ${error.toString()}`;
+    console.error(errorMsg);
+    return { success: false, error: errorMsg };
   }
 }
 
@@ -160,6 +139,8 @@ function processLatestResponse() {
   const latestResponse = formResponses[formResponses.length - 1];
   
   try {
+    console.log(`Processing latest response (ID: ${latestResponse.getId()})`);
+    
     const responseData = FormHandler.extractResponseData(latestResponse);
     const hash = Hashing.hashResponseData(responseData);
     const metadata = {
@@ -171,6 +152,11 @@ function processLatestResponse() {
     // Send hash to API
     const result = ApiClient.sendHashToApi(hash, metadata);
     
+    if (result.error) {
+      console.error(`API error: ${JSON.stringify(result)}`);
+      return { success: false, error: result.error };
+    }
+    
     return {
       success: true,
       hash: hash,
@@ -178,9 +164,11 @@ function processLatestResponse() {
       apiResult: result
     };
   } catch (error) {
+    const errorMsg = `Error processing response: ${error.toString()}`;
+    console.error(errorMsg);
     return {
       success: false,
-      error: error.toString()
+      error: errorMsg
     };
   }
 }
