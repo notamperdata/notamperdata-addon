@@ -1,5 +1,6 @@
 /**
  * Contains functions for API communication.
+ * Simplified to use hardcoded endpoint and basic error handling.
  */
 var ApiClient = (function() {
   /**
@@ -22,32 +23,28 @@ var ApiClient = (function() {
     };
     
     try {
-      const response = UrlFetchApp.fetch(API_ENDPOINT, options);
+      console.log(`Sending hash to API: ${API_ENDPOINT}/formhash`);
+      
+      const response = UrlFetchApp.fetch(API_ENDPOINT + "/formhash", options);
       const responseCode = response.getResponseCode();
       const contentText = response.getContentText();
+      
+      console.log(`API responded with status code: ${responseCode}`);
       
       if (responseCode >= 200 && responseCode < 300) {
         return JSON.parse(contentText);
       } else {
         console.error(`API request failed with status ${responseCode}: ${contentText}`);
         return {
-          error: `Request failed with status ${responseCode}`,
+          error: `API request failed with status ${responseCode}`,
           details: contentText
         };
       }
     } catch (error) {
       console.error(`API request error: ${error.toString()}`);
-      
-      // Implement basic retry logic
-      try {
-        console.log('Retrying API request after failure...');
-        Utilities.sleep(2000);  // Wait 2 seconds before retry
-        const retryResponse = UrlFetchApp.fetch(API_ENDPOINT, options);
-        return JSON.parse(retryResponse.getContentText());
-      } catch (retryError) {
-        console.error(`Retry also failed: ${retryError.toString()}`);
-        throw new Error(`API communication failed: ${error.toString()}`);
-      }
+      return {
+        error: `API communication failed: ${error.toString()}`
+      };
     }
   }
   
@@ -69,15 +66,28 @@ var ApiClient = (function() {
     };
     
     try {
-      // Assuming verify endpoint is at the same base URL but with /verify path
-      const verifyEndpoint = API_ENDPOINT.replace('/formhash', '/verify');
-      const response = UrlFetchApp.fetch(verifyEndpoint, options);
-      return JSON.parse(response.getContentText());
+      console.log(`Verifying hash with API: ${API_ENDPOINT}/verify`);
+      
+      const response = UrlFetchApp.fetch(API_ENDPOINT + "/verify", options);
+      const responseCode = response.getResponseCode();
+      const contentText = response.getContentText();
+      
+      console.log(`Verification API responded with status code: ${responseCode}`);
+      
+      if (responseCode >= 200 && responseCode < 300) {
+        return JSON.parse(contentText);
+      } else {
+        console.error(`Verification request failed with status ${responseCode}: ${contentText}`);
+        return {
+          verified: false,
+          error: `Verification failed with status ${responseCode}`
+        };
+      }
     } catch (error) {
       console.error(`Verification request failed: ${error.toString()}`);
       return {
         verified: false,
-        error: error.toString()
+        error: `Verification request failed: ${error.toString()}`
       };
     }
   }
