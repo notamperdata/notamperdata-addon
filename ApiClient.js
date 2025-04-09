@@ -23,9 +23,9 @@ var ApiClient = (function() {
     };
     
     try {
-      console.log(`Sending hash to API: ${API_ENDPOINT}/formhash`);
+      console.log(`Sending hash to API: ${API_ENDPOINT}/storehash`);
       
-      const response = UrlFetchApp.fetch(API_ENDPOINT + "/formhash", options);
+      const response = UrlFetchApp.fetch(API_ENDPOINT + "/storehash", options);
       const responseCode = response.getResponseCode();
       const contentText = response.getContentText();
       
