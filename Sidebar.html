@@ -18,7 +18,7 @@
         text-align: center;
         margin-bottom: 20px;
         padding: 12px 0;
-        background-color: #0033AD; /* Cardano blue */
+        background-color: #0033AD;
         color: white;
         border-radius: 4px;
       }
@@ -26,19 +26,25 @@
         font-size: 20px;
         margin: 0;
       }
+      .header small {
+        opacity: 0.9;
+      }
       .section {
         margin-bottom: 20px;
         padding-bottom: 12px;
         border-bottom: 1px solid #e0e0e0;
       }
+      .section:last-child {
+        border-bottom: none;
+      }
       .section-title {
         font-size: 14px;
         font-weight: 500;
         margin-bottom: 8px;
-        color: #0033AD; /* Cardano blue */
+        color: #0033AD;
       }
       .btn {
-        background-color: #0033AD; /* Cardano blue */
+        background-color: #0033AD;
         color: white;
         border: none;
         padding: 8px 16px;
@@ -46,14 +52,23 @@
         cursor: pointer;
         border-radius: 4px;
         font-weight: 500;
+        width: 100%;
+        margin-top: 8px;
       }
       .btn:hover {
-        background-color: #002A8C; /* Darker blue */
+        background-color: #002A8C;
+      }
+      .btn:disabled {
+        background-color: #ccc;
+        cursor: not-allowed;
       }
       .secondary-btn {
         background-color: #f1f3f4;
         color: #333;
         border: 1px solid #dadce0;
+      }
+      .secondary-btn:hover {
+        background-color: #e8e8e9;
       }
       .message {
         padding: 8px 12px;
@@ -63,18 +78,18 @@
       }
       .success {
         background-color: #e6f4ea;
-        color: #34A853; /* Google green */
+        color: #1e8e3e;
         border: 1px solid #34A853;
       }
       .error {
         background-color: #fce8e6;
-        color: #EA4335; /* Google red */
+        color: #d33b2c;
         border: 1px solid #EA4335;
       }
       .info {
         background-color: #e8f0fe;
-        color: #4285F4; /* Google blue */
-        border: 1px solid #d2e3fc;
+        color: #1967d2;
+        border: 1px solid #4285F4;
       }
       .hidden {
         display: none;
@@ -88,134 +103,139 @@
       }
       .badge-enabled {
         background-color: #e6f4ea;
-        color: #34A853; /* Google green */
+        color: #1e8e3e;
       }
       .badge-disabled {
         background-color: #fce8e6;
-        color: #EA4335; /* Google red */
+        color: #d33b2c;
       }
-      .api-key-box {
-        background-color: #f8f9fa;
-        border: 1px solid #dadce0;
-        border-radius: 4px;
-        padding: 8px 12px;
-        font-family: 'Courier New', monospace;
+      .help-text {
         font-size: 12px;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        margin-top: 8px;
+        color: #5f6368;
+        margin-top: 4px;
       }
-      .copy-btn {
-        background: none;
-        border: none;
+      .footer {
+        text-align: center;
+        font-size: 12px;
+        color: #5f6368;
+        margin-top: 24px;
+        padding-top: 12px;
+        border-top: 1px solid #e0e0e0;
+      }
+      .footer a {
         color: #0033AD;
-        cursor: pointer;
-        font-size: 12px;
-        padding: 4px;
-        float: right;
+        text-decoration: none;
       }
-      .copy-btn:hover {
+      .footer a:hover {
         text-decoration: underline;
+      }
+      .loading {
+        display: inline-block;
+        width: 14px;
+        height: 14px;
+        border: 2px solid #f3f3f3;
+        border-top: 2px solid #0033AD;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+        margin-right: 8px;
+        vertical-align: middle;
+      }
+      @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
       }
     </style>
   </head>
   <body>
     <div class="container">
       <div class="header">
-        <h1>Adaverc Demo</h1>
-        <small>Form Response Verification</small>
+        <h1>Adaverc</h1>
+        <small>Blockchain Verification for Forms</small>
       </div>
       
       <div id="status-message" class="message hidden"></div>
       
       <div class="section">
         <div class="section-title">Current Form</div>
-        <p id="form-info">Loading form information...</p>
-      </div>
-      
-      <div class="section">
-        <div class="section-title">API Key</div>
-        <p>Connect your Adaverc account:</p>
-        <div id="api-key-container">
-          <div id="api-key-status" class="message info">
-            Please enter your Adaverc API key.
-          </div>
-          <div style="display: flex; margin-top: 8px;">
-            <input type="text" id="api-key-input" placeholder="Enter API key" 
-                   style="flex: 1; padding: 8px; border: 1px solid #dadce0; border-radius: 4px 0 0 4px; font-size: 14px;">
-            <button class="btn" id="save-api-key-btn" style="border-radius: 0 4px 4px 0;">Save</button>
-          </div>
-          <p class="info-text" style="font-size: 11px; color: #5f6368; margin-top: 4px;">
-            Get your API key from the <a href="https://adaforms-demo-api.vercel.app/" target="_blank">Adaverc Dashboard</a>
-          </p>
-        </div>
-        <div id="api-key-display-container" class="hidden">
-          <div class="api-key-box" id="api-key-display">
-            <span id="api-key-value">••••••••••••••••••••••••</span>
-            <button class="copy-btn" onclick="copyApiKey()">Copy</button>
-          </div>
-          <div style="text-align: right; margin-top: 4px;">
-            <button class="secondary-btn" id="change-api-key-btn" style="font-size: 12px; padding: 4px 8px;">Change Key</button>
-          </div>
+        <div id="form-info">
+          <span class="loading"></span>Loading...
         </div>
       </div>
       
       <div class="section">
-        <div class="section-title">Automatic Hash Recording</div>
-        <p>When enabled, each form submission will be automatically hashed and recorded.</p>
+        <div class="section-title">Automatic Verification</div>
+        <p style="font-size: 14px; margin: 8px 0;">
+          Enable automatic hashing of all form responses for blockchain verification.
+        </p>
         
-        <div id="trigger-status">
-          <label>Current Status:</label>
-          <div id="status-badge" class="status-badge badge-disabled">Disabled</div>
+        <div style="margin: 12px 0;">
+          <span style="font-weight: 500;">Status:</span>
+          <span id="status-badge" class="status-badge badge-disabled">Checking...</span>
         </div>
         
-        <div style="margin-top: 12px;">
-          <button class="btn" id="enableTriggerBtn">Enable Automatic Recording</button>
-          <button class="btn secondary-btn hidden" id="disableTriggerBtn">Disable Recording</button>
-        </div>
+        <button class="btn" id="enableBtn">Enable Automatic Verification</button>
+        <button class="btn secondary-btn hidden" id="disableBtn">Disable Verification</button>
+        
+        <p class="help-text">
+          When enabled, each form submission will be automatically hashed and recorded for verification.
+        </p>
       </div>
       
       <div class="section">
-        <div class="section-title">Test Functionality</div>
-        <p>Process the most recent form response to test the system.</p>
+        <div class="section-title">Test Verification</div>
+        <p style="font-size: 14px; margin: 8px 0;">
+          Process the most recent form response to test the verification system.
+        </p>
         
-        <div>
-          <button class="btn secondary-btn" id="testBtn">Test With Latest Response</button>
-        </div>
+        <button class="btn secondary-btn" id="testBtn">Test With Latest Response</button>
         <div id="test-result" class="message info hidden"></div>
       </div>
       
-      <div style="text-align: center; font-size: 12px; color: #666; margin-top: 20px;">
-        Powered by Adaverc blockchain verification
+      <div class="footer">
+        <a href="#" onclick="showAbout(); return false;">About</a> • 
+        <a href="https://adaverc.com/verify" target="_blank">Verify Responses</a> • 
+        <a href="https://adaverc.com/support" target="_blank">Support</a>
       </div>
     </div>
     
     <script>
+      // Show about dialog
+      function showAbout() {
+        google.script.run.showAbout();
+      }
+      
       // Load form information
       google.script.run
         .withSuccessHandler(function(formInfo) {
+          const infoDiv = document.getElementById('form-info');
+          if (formInfo.error) {
+            infoDiv.innerHTML = '<span style="color: #d33b2c;">Unable to load form information</span>';
+          } else {
+            infoDiv.innerHTML = 
+              '<strong>' + formInfo.title + '</strong><br>' +
+              '<span style="font-size: 12px; color: #5f6368;">Form ID: ' + formInfo.id + '</span>';
+          }
+        })
+        .withFailureHandler(function(error) {
           document.getElementById('form-info').innerHTML = 
-            '<strong>Title:</strong> ' + formInfo.title + '<br>' +
-            '<strong>ID:</strong> ' + formInfo.id;
+            '<span style="color: #d33b2c;">Error loading form</span>';
         })
         .getFormInfo();
       
       // Check if trigger is enabled
-      google.script.run
-        .withSuccessHandler(function(isEnabled) {
-          updateTriggerStatus(isEnabled);
-        })
-        .isTriggerEnabled();
+      function checkTriggerStatus() {
+        google.script.run
+          .withSuccessHandler(function(isEnabled) {
+            updateTriggerStatus(isEnabled);
+          })
+          .withFailureHandler(function(error) {
+            updateTriggerStatus(false);
+          })
+          .isTriggerEnabled();
+      }
       
-      // Check if API key is already stored
-      google.script.run
-        .withSuccessHandler(function(apiKey) {
-          if (apiKey) {
-            showApiKey(apiKey);
-          }
-        })
-        .getApiKey();
+      // Initial trigger check
+      checkTriggerStatus();
       
       // Helper function to show messages
       function showMessage(message, type) {
@@ -233,8 +253,8 @@
       // Update trigger status UI
       function updateTriggerStatus(isEnabled) {
         const statusBadge = document.getElementById('status-badge');
-        const enableBtn = document.getElementById('enableTriggerBtn');
-        const disableBtn = document.getElementById('disableTriggerBtn');
+        const enableBtn = document.getElementById('enableBtn');
+        const disableBtn = document.getElementById('disableBtn');
         
         if (isEnabled) {
           statusBadge.textContent = 'Enabled';
@@ -249,102 +269,57 @@
         }
       }
       
-      // Copy API key to clipboard
-      function copyApiKey() {
-        const apiKeyElement = document.getElementById('api-key-value');
-        
-        google.script.run
-          .withSuccessHandler(function(apiKey) {
-            // Create a temporary text area element to copy from
-            const textArea = document.createElement('textarea');
-            textArea.value = apiKey;
-            document.body.appendChild(textArea);
-            textArea.select();
-            
-            try {
-              document.execCommand('copy');
-              showMessage('API key copied to clipboard!', 'success');
-            } catch (err) {
-              showMessage('Failed to copy API key', 'error');
-            }
-            
-            document.body.removeChild(textArea);
-          })
-          .getApiKey();
-      }
-      
-      // Show API key UI (when key exists)
-      function showApiKey(apiKey) {
-        // Show last 4 characters, hide the rest
-        const lastFour = apiKey.slice(-4);
-        const maskedKey = '•'.repeat(apiKey.length - 4) + lastFour;
-        
-        document.getElementById('api-key-value').textContent = maskedKey;
-        document.getElementById('api-key-container').classList.add('hidden');
-        document.getElementById('api-key-display-container').classList.remove('hidden');
-      }
-      
-      // Handle saving API key
-      document.getElementById('save-api-key-btn').addEventListener('click', function() {
-        const apiKeyInput = document.getElementById('api-key-input');
-        const apiKey = apiKeyInput.value.trim();
-        
-        if (!apiKey) {
-          showMessage('Please enter a valid API key', 'error');
-          return;
-        }
+      // Enable button click handler
+      document.getElementById('enableBtn').addEventListener('click', function() {
+        this.disabled = true;
+        this.innerHTML = '<span class="loading"></span>Enabling...';
         
         google.script.run
           .withSuccessHandler(function(result) {
             if (result.success) {
-              showMessage('API key saved successfully!', 'success');
-              showApiKey(apiKey);
-              apiKeyInput.value = '';
+              showMessage('Automatic verification enabled successfully!', 'success');
+              updateTriggerStatus(true);
             } else {
-              showMessage('Error: ' + (result.error || 'Failed to save API key'), 'error');
+              showMessage(result.error || 'Failed to enable verification', 'error');
             }
+            document.getElementById('enableBtn').disabled = false;
+            document.getElementById('enableBtn').innerHTML = 'Enable Automatic Verification';
           })
           .withFailureHandler(function(error) {
             showMessage('Error: ' + error, 'error');
-          })
-          .saveApiKey(apiKey);
-      });
-      
-      // Handle changing API key
-      document.getElementById('change-api-key-btn').addEventListener('click', function() {
-        document.getElementById('api-key-container').classList.remove('hidden');
-        document.getElementById('api-key-display-container').classList.add('hidden');
-      });
-      
-      // Enable form submit trigger
-      document.getElementById('enableTriggerBtn').addEventListener('click', function() {
-        google.script.run
-          .withSuccessHandler(function() {
-            showMessage('Automatic hash recording enabled!', 'success');
-            updateTriggerStatus(true);
-          })
-          .withFailureHandler(function(error) {
-            showMessage('Error: ' + error, 'error');
+            document.getElementById('enableBtn').disabled = false;
+            document.getElementById('enableBtn').innerHTML = 'Enable Automatic Verification';
           })
           .createFormTrigger();
       });
       
-      // Disable form submit trigger
-      document.getElementById('disableTriggerBtn').addEventListener('click', function() {
+      // Disable button click handler
+      document.getElementById('disableBtn').addEventListener('click', function() {
+        this.disabled = true;
+        this.innerHTML = '<span class="loading"></span>Disabling...';
+        
         google.script.run
           .withSuccessHandler(function() {
-            showMessage('Automatic hash recording disabled!', 'success');
+            showMessage('Automatic verification disabled', 'info');
             updateTriggerStatus(false);
+            document.getElementById('disableBtn').disabled = false;
+            document.getElementById('disableBtn').innerHTML = 'Disable Verification';
           })
           .withFailureHandler(function(error) {
             showMessage('Error: ' + error, 'error');
+            document.getElementById('disableBtn').disabled = false;
+            document.getElementById('disableBtn').innerHTML = 'Disable Verification';
           })
           .removeTrigger();
       });
       
-      // Test with latest response
+      // Test button click handler
       document.getElementById('testBtn').addEventListener('click', function() {
         const testResult = document.getElementById('test-result');
+        const btn = this;
+        
+        btn.disabled = true;
+        btn.innerHTML = '<span class="loading"></span>Processing...';
         testResult.textContent = 'Processing latest response...';
         testResult.className = 'message info';
         testResult.classList.remove('hidden');
@@ -352,19 +327,23 @@
         google.script.run
           .withSuccessHandler(function(result) {
             if (result.success) {
-              testResult.textContent = 'Success! Response processed with hash: ' + result.hash;
+              testResult.innerHTML = 
+                '<strong>✓ Success!</strong><br>' +
+                'Hash: <code style="font-size: 11px;">' + result.hash.substring(0, 16) + '...</code><br>' +
+                '<a href="https://adaverc.com/verify" target="_blank">Verify this response →</a>';
               testResult.className = 'message success';
-            } else if (result.error) {
-              testResult.textContent = 'Error: ' + result.error;
-              testResult.className = 'message error';
             } else {
-              testResult.textContent = 'No recent responses found to process.';
-              testResult.className = 'message info';
+              testResult.textContent = result.error || 'Unable to process response';
+              testResult.className = 'message error';
             }
+            btn.disabled = false;
+            btn.innerHTML = 'Test With Latest Response';
           })
           .withFailureHandler(function(error) {
             testResult.textContent = 'Error: ' + error;
             testResult.className = 'message error';
+            btn.disabled = false;
+            btn.innerHTML = 'Test With Latest Response';
           })
           .processLatestResponse();
       });

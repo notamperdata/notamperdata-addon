@@ -1,115 +1,100 @@
-# AdaForms Google Forms Add-on
+# Adaverc Google Forms Add-on
 
-This add-on provides blockchain-based verification for Google Forms responses by hashing response data and storing it in the AdaForms verification system.
+## Overview
+
+Adaverc provides blockchain-based verification for Google Forms responses by generating cryptographic hashes of form submissions and storing them for future verification. This ensures data integrity without compromising privacy - only hashes are stored, never the actual form data.
 
 ## Features
 
-- Automatic hashing of form responses
-- Secure transmission of hashes to the AdaForms API
-- Privacy-preserving design (only hashes, not actual form data, are sent)
-- Configurable automatic verification
+- **Privacy-Preserving**: Only SHA-256 hashes leave Google's ecosystem
+- **Automatic Processing**: Enable once, verify always
+- **Simple Interface**: Clean, intuitive sidebar UI
+- **Instant Verification**: Test with existing responses immediately
 
-## Development Setup
+## Installation
 
-### Prerequisites
+### For Users
+1. Open your Google Form
+2. Click Add-ons → Get add-ons
+3. Search for "Adaverc"
+4. Click Install and follow the authorization prompts
 
-1. [Node.js](https://nodejs.org/) (for clasp CLI)
-2. [Google clasp CLI](https://developers.google.com/apps-script/guides/clasp)
-3. Google account with access to Google Forms
+### For Developers
 
-### Setting Up the Development Environment
-
-1. Install clasp globally:
-
+1. Install Google Apps Script CLI:
 ```bash
 npm install -g @google/clasp
 ```
 
 2. Login to Google:
-
 ```bash
 clasp login
 ```
 
-3. Create a new Google Apps Script project:
-
+3. Clone and push the code:
 ```bash
-clasp create --title "AdaForms Add-on" --type forms-addon
-```
-
-4. Clone this repository or create the files as shown in the project structure.
-
-5. Update the `.clasp.json` file with your script ID (created in step 3).
-
-6. Push the code to Google Apps Script:
-
-```bash
+clasp clone --scriptId [YOUR_SCRIPT_ID]
+# Copy the add-on files to your local directory
 clasp push
 ```
 
-### Configuration
-
-Before deploying, update the API endpoint in `ApiService.gs`:
-
-```javascript
-const API_BASE_URL = 'https://your-actual-api-domain.com/api';
-```
-
-## Deployment
-
-### Testing in Development Mode
-
-1. Open the script editor:
-
-```bash
-clasp open
-```
-
-2. Test the add-on using the "Test as add-on" feature in the Apps Script editor.
-
-### Publishing to Google Workspace Marketplace
-
-For a production deployment, follow these steps:
-
-1. Create a deployment:
-
-```bash
-clasp deploy --description "Initial deployment"
-```
-
-2. Configure OAuth consent screen in the Google Cloud Console.
-
-3. Submit the add-on for review through the Google Workspace Marketplace SDK.
-
 ## Usage
 
-1. Install the add-on in Google Forms.
-2. Open a form and access the add-on from the Add-ons menu.
-3. Click "Enable Automatic Verification" to set up automatic hashing of responses.
-4. Form responses will now be automatically hashed and sent to the AdaForms API.
+1. Open your Google Form
+2. Click Add-ons → Adaverc → Open
+3. Click "Enable Automatic Verification"
+4. Submit a test response to verify the system is working
 
-## Project Structure
+## File Structure
 
-- `Code.gs`: Main entry point for the add-on
-- `FormHandler.gs`: Logic for processing form responses
-- `HashService.gs`: Implementation of hashing functionality
-- `ApiService.gs`: API communication with the backend
-- `UI.gs`: User interface components
+```
+├── Code.js           # Main entry point and core functions
+├── FormHandler.js    # Form response processing logic
+├── Hashing.js        # SHA-256 hash generation
+├── ApiClient.js      # API communication layer
+├── Sidebar.html      # User interface
+├── appsscript.json   # Add-on configuration
+└── README.md         # This file
+```
 
-## How It Works
+## API Endpoints
 
-1. When a form submission occurs, the `onFormSubmit` trigger activates.
-2. The form response is processed and standardized by `FormHandler`.
-3. The standardized data is hashed using `HashService`.
-4. The hash and metadata are sent to the AdaForms API via `ApiService`.
-5. The API stores the hash for future verification.
+The add-on communicates with the following endpoints:
 
-## Security Considerations
+- `POST /api/storehash` - Store hash and metadata
+- `GET /api/health` - Check API availability (optional)
 
-- Only cryptographic hashes of form responses are sent to the external API, not the actual response data
-- Communication with the API is done over HTTPS
-- The add-on requires minimal permissions to function
+## Privacy & Security
+
+- **No Data Storage**: The add-on never stores form response data
+- **Hashing Only**: Uses SHA-256 to create one-way hashes
+- **Minimal Permissions**: Only requests necessary OAuth scopes
+- **Open Source**: All code is transparent and auditable
+
+## Testing
+
+1. Create a test form with various question types
+2. Install the add-on
+3. Submit test responses
+4. Use the "Test With Latest Response" button to verify
+
+## Deployment Checklist
+
+Before submitting to Google Workspace Marketplace:
+
+- [ ] Update API endpoint in `Code.js` to production URL
+- [ ] Ensure privacy policy is accessible at `https://adaverc.com/privacy`
+- [ ] Ensure terms of service is accessible at `https://adaverc.com/terms`
+- [ ] Test all functionality with production API
+- [ ] Create app listing assets (screenshots, descriptions)
+- [ ] Complete OAuth consent screen configuration
+
+## Support
+
+- Documentation: https://adaverc.com/docs
+- Support: https://adaverc.com/support
+- Issues: https://github.com/adaverc/forms-addon/issues
 
 ## License
 
-[MIT License](LICENSE)
+MIT License - See LICENSE file for details

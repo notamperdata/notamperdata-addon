@@ -1,16 +1,15 @@
 /**
- * Contains functions for API communication.
- * Simplified to use hardcoded endpoint and basic error handling.
+ * Handles API communication with the Adaverc backend.
+ * Simplified for MVP - no authentication required.
  */
 var ApiClient = (function() {
   /**
-   * Sends hash and metadata to external API.
+   * Sends hash and metadata to the Adaverc API.
    * @param {String} hash - The generated hash
    * @param {Object} metadata - Metadata about the response
-   * @param {String} apiKey - Optional API key for authentication
-   * @return {Object} API response
+   * @return {Object} API response or error object
    */
-  function sendHashToApi(hash, metadata, apiKey) {
+  function sendHashToApi(hash, metadata) {
     const payload = {
       hash: hash,
       metadata: metadata
@@ -20,96 +19,94 @@ var ApiClient = (function() {
       'method': 'post',
       'contentType': 'application/json',
       'payload': JSON.stringify(payload),
-      'muteHttpExceptions': true
+      'muteHttpExceptions': true,
+      'timeout': 30 // 30 second timeout
     };
     
-    // Add API key to headers if provided
-    if (apiKey) {
-      options.headers = {
-        'Authorization': 'Bearer ' + apiKey
-      };
-    }
-    
     try {
-      console.log(`Sending hash to API: ${API_ENDPOINT}/formhash`);
+      console.log(`Sending hash to API: ${API_ENDPOINT}/storehash`);
       
-      const response = UrlFetchApp.fetch(API_ENDPOINT + "/formhash", options);
+      const response = UrlFetchApp.fetch(API_ENDPOINT + "/storehash", options);
       const responseCode = response.getResponseCode();
       const contentText = response.getContentText();
       
       console.log(`API responded with status code: ${responseCode}`);
       
       if (responseCode >= 200 && responseCode < 300) {
-        return JSON.parse(contentText);
-      } else {
-        console.error(`API request failed with status ${responseCode}: ${contentText}`);
+        try {
+          return JSON.parse(contentText);
+        } catch (e) {
+          console.error('Failed to parse API response:', e);
+          return { success: true }; // Assume success if we got 2xx
+        }
+      } else if (responseCode === 0) {
+        // Network error
         return {
-          error: `API request failed with status ${responseCode}`,
-          details: contentText
+          error: 'Unable to connect to Adaverc servers. Please check your internet connection.'
+        };
+      } else if (responseCode >= 500) {
+        // Server error
+        return {
+          error: 'Adaverc server error. Please try again later.'
+        };
+      } else if (responseCode >= 400) {
+        // Client error
+        try {
+          const errorData = JSON.parse(contentText);
+          return {
+            error: errorData.error || `Request failed (${responseCode})`
+          };
+        } catch (e) {
+          return {
+            error: `Request failed with status ${responseCode}`
+          };
+        }
+      } else {
+        return {
+          error: `Unexpected response (${responseCode})`
         };
       }
     } catch (error) {
       console.error(`API request error: ${error.toString()}`);
-      return {
-        error: `API communication failed: ${error.toString()}`
-      };
+      
+      // Handle specific error types
+      if (error.toString().includes('DNS error')) {
+        return {
+          error: 'Unable to reach Adaverc servers. Please check your internet connection.'
+        };
+      } else if (error.toString().includes('timeout')) {
+        return {
+          error: 'Request timed out. Please try again.'
+        };
+      } else {
+        return {
+          error: 'Unable to connect to verification service.'
+        };
+      }
     }
   }
   
   /**
-   * Verifies a hash against the API.
-   * @param {String} hash - The hash to verify
-   * @param {String} apiKey - Optional API key for authentication
-   * @return {Object} Verification result
+   * Health check for API connectivity (optional, for future use).
+   * @return {boolean} Whether the API is reachable
    */
-  function verifyHash(hash, apiKey) {
-    const payload = {
-      hash: hash
-    };
-    
-    const options = {
-      'method': 'post',
-      'contentType': 'application/json',
-      'payload': JSON.stringify(payload),
-      'muteHttpExceptions': true
-    };
-    
-    // Add API key to headers if provided
-    if (apiKey) {
-      options.headers = {
-        'Authorization': 'Bearer ' + apiKey
-      };
-    }
-    
+  function checkApiHealth() {
     try {
-      console.log(`Verifying hash with API: ${API_ENDPOINT}/verify`);
+      const response = UrlFetchApp.fetch(API_ENDPOINT + "/health", {
+        'method': 'get',
+        'muteHttpExceptions': true,
+        'timeout': 10
+      });
       
-      const response = UrlFetchApp.fetch(API_ENDPOINT + "/verify", options);
-      const responseCode = response.getResponseCode();
-      const contentText = response.getContentText();
-      
-      console.log(`Verification API responded with status code: ${responseCode}`);
-      
-      if (responseCode >= 200 && responseCode < 300) {
-        return JSON.parse(contentText);
-      } else {
-        console.error(`Verification request failed with status ${responseCode}: ${contentText}`);
-        return {
-          verified: false,
-          error: `Verification failed with status ${responseCode}`
-        };
-      }
+      return response.getResponseCode() === 200;
     } catch (error) {
-      console.error(`Verification request failed: ${error.toString()}`);
-      return {
-        verified: false,
-        error: `Verification request failed: ${error.toString()}`
-      };
+      console.error('Health check failed:', error);
+      return false;
     }
   }
   
   return {
     sendHashToApi: sendHashToApi,
-    verifyHash: verifyHash
+    checkApiHealth: checkApiHealth
   };
 })();
