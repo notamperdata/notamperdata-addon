@@ -49,8 +49,6 @@ clasp push
 
 ```
 ├── Code.js           # Main entry point and core functions
-├── FormHandler.js    # Form response processing logic
-├── Hashing.js        # SHA-256 hash generation
 ├── ApiClient.js      # API communication layer
 ├── Sidebar.html      # User interface
 ├── appsscript.json   # Add-on configuration
@@ -83,17 +81,17 @@ The add-on communicates with the following endpoints:
 Before submitting to Google Workspace Marketplace:
 
 - [ ] Update API endpoint in `Code.js` to production URL
-- [ ] Ensure privacy policy is accessible at `https://adaverc.com/privacy`
-- [ ] Ensure terms of service is accessible at `https://adaverc.com/terms`
+- [ ] Ensure privacy policy is accessible at `https://adaverc.vercel.app/privacy`
+- [ ] Ensure terms of service is accessible at `https://adaverc.vercel.app/terms`
 - [ ] Test all functionality with production API
 - [ ] Create app listing assets (screenshots, descriptions)
 - [ ] Complete OAuth consent screen configuration
 
 ## Support
 
-- Documentation: https://adaverc.com/docs
-- Support: https://adaverc.com/support
-- Issues: https://github.com/adaverc/forms-addon/issues
+- Documentation: https://adaverc.vercel.app/docs
+- Support: https://adaverc.vercel.app/support
+- Issues: https://github.com/adaverc/adaverc-addon/issues
 
 ## License
 
