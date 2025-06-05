@@ -1,7 +1,7 @@
 // API endpoint - Update this to match your deployment
-// For testing: "http://localhost:3002/api"
-// For production: "https://adaverc.com/api"
-const API_ENDPOINT = "http://localhost:3002/api";
+// For testing: "http://localhost:3000/api"
+// For production: "https://adaverc.vercel.app/api"
+const API_ENDPOINT = "https://adaverc.vercel.app/api";
 
 // Add-on metadata
 const ADDON_NAME = "Adaverc";
@@ -63,9 +63,9 @@ function showAbout() {
         • Hashes can be verified at any time
       </p>
       <p style="margin-bottom: 20px;">
-        <a href="https://adaverc.com/privacy" target="_blank">Privacy Policy</a> | 
-        <a href="https://adaverc.com/terms" target="_blank">Terms of Service</a> | 
-        <a href="https://adaverc.com/support" target="_blank">Support</a>
+        <a href="https://adaverc.vercel.app/privacy" target="_blank">Privacy Policy</a> | 
+        <a href="https://adaverc.vercel.app/terms" target="_blank">Terms of Service</a> | 
+        <a href="https://adaverc.vercel.app/support" target="_blank">Support</a>
       </p>
       <div style="text-align: center; margin-top: 20px;">
         <button onclick="google.script.host.close()">Close</button>
@@ -257,3 +257,139 @@ function processLatestResponse() {
     };
   }
 }
+
+
+
+//HELPER FUNCTIONS
+
+/**
+ * Functions for handling form responses.
+ */
+var FormHandler = (function() {
+  /**
+   * Extracts response data in a standardized format.
+   * @param {FormResponse} formResponse - The form response object
+   * @return {Object} Standardized response data
+   */
+  function extractResponseData(formResponse) {
+    console.log(`Extracting data from response ID: ${formResponse.getId()}`);
+    
+    const result = {
+      responseId: formResponse.getId(),
+      timestamp: formResponse.getTimestamp().toISOString(),
+      items: []
+    };
+    
+    try {
+      // Get all item responses
+      const itemResponses = formResponse.getItemResponses();
+      console.log(`Processing ${itemResponses.length} response items`);
+      
+      // Process each item response
+      itemResponses.forEach(function(itemResponse, index) {
+        const item = FormApp.getActiveForm().getItemById(itemResponse.getItem().getId());
+        const itemType = item.getType().toString();
+        
+        let responseValue = itemResponse.getResponse();
+        
+        // Handle different item types to ensure consistent formatting
+        switch(itemType) {
+          case 'CHECKBOX':
+            // Ensure array is sorted for consistent hashing
+            responseValue = responseValue.slice().sort();
+            break;
+          case 'GRID':
+          case 'CHECKBOX_GRID':
+            // Ensure grid responses are consistently ordered
+            if (responseValue && typeof responseValue === 'object') {
+              responseValue = Object.keys(responseValue).sort().reduce((obj, key) => {
+                obj[key] = responseValue[key];
+                return obj;
+              }, {});
+            }
+            break;
+        }
+        
+        const response = {
+          itemId: item.getId(),
+          title: item.getTitle(),
+          type: itemType,
+          response: responseValue
+        };
+        
+        result.items.push(response);
+        
+        // Log brief info about each item (optional, for debugging)
+        console.log(`Item ${index + 1}: ${itemType} - "${item.getTitle().substring(0, 20)}..."`);
+      });
+      
+      console.log(`Successfully processed response data`);
+      return result;
+    } catch (error) {
+      console.error(`Error extracting response data: ${error.toString()}`);
+      throw new Error(`Failed to extract response data: ${error.toString()}`);
+    }
+  }
+  
+  return {
+    extractResponseData: extractResponseData
+  };
+})();
+
+
+/**
+ * Contains functions for hashing response data.
+ */
+var Hashing = (function() {
+  /**
+   * Creates a deterministic hash from response data.
+   * @param {Object} responseData - The standardized response data
+   * @return {String} SHA-256 hash of the response data
+   */
+  function hashResponseData(responseData) {
+    // Convert to string in a deterministic way (stable ordering of keys)
+    const jsonString = JSON.stringify(responseData, function(key, value) {
+      // Handle arrays to ensure consistent ordering
+      if (Array.isArray(value)) {
+        // Sort simple arrays by their string representation
+        if (value.every(item => typeof item !== 'object')) {
+          return [...value].sort();
+        }
+        
+        // For arrays of objects, sort by stringifying their contents
+        return value.map(item => JSON.stringify(item)).sort().map(item => {
+          try {
+            return JSON.parse(item);
+          } catch (e) {
+            return item;
+          }
+        });
+      }
+      
+      // Handle objects to ensure consistent key ordering
+      if (value !== null && typeof value === 'object' && !Array.isArray(value)) {
+        return Object.keys(value).sort().reduce((obj, k) => {
+          obj[k] = value[k];
+          return obj;
+        }, {});
+      }
+      
+      return value;
+    });
+    
+    // Use Apps Script's Utilities to compute SHA-256 hash
+    const bytes = Utilities.computeDigest(
+      Utilities.DigestAlgorithm.SHA_256, 
+      jsonString
+    );
+    
+    // Convert bytes to hex string
+    return bytes.map(function(byte) {
+      return ('0' + (byte & 0xFF).toString(16)).slice(-2);
+    }).join('');
+  }
+  
+  return {
+    hashResponseData: hashResponseData
+  };
+})();
