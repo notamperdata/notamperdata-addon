@@ -1,27 +1,4 @@
-/**
- * Get last processed timestamp.
- * @return {string|null} ISO timestamp or null
- */
-function getLastProcessedTimestamp() {
-  try {
-    return PropertiesService.getDocumentProperties().getProperty(LAST_PROCESSED_KEY);
-  } catch (error) {
-    console.error('Error getting last processed timestamp:', error);
-    return null;
-  }
-}
-
-/**
- * Update last processed timestamp.
- * @param {string} timestamp - ISO timestamp
- */
-function setLastProcessedTimestamp(timestamp) {
-  try {
-    PropertiesService.getDocumentProperties().setProperty(LAST_PROCESSED_KEY, timestamp);
-  } catch (error) {
-    console.error('Error setting last processed timestamp:', error);
-  }
-}// API endpoint - Update this to match your deployment
+// API endpoint - Update this to match your deployment
 // For testing: "http://localhost:3000/api"
 // For production: "https://adaverc.vercel.app/api"
 const API_ENDPOINT = "https://adaverc.vercel.app/api";
@@ -33,6 +10,7 @@ const ADDON_VERSION = "1.1.0";
 // Configuration for batch processing
 const BATCH_CONFIG_KEY = "ADAVERC_BATCH_CONFIG";
 const API_KEY_CONFIG_KEY = "ADAVERC_API_KEY";
+const LAST_PROCESSED_KEY = "ADAVERC_LAST_PROCESSED";
 
 /**
  * Runs when the add-on is installed.
@@ -326,6 +304,71 @@ function isBatchProcessingEnabled() {
 }
 
 /**
+ * Standardizes form response data to enable CSV export verification.
+ * Removes dynamic fields and normalizes structure for consistent hashing.
+ * @param {Object} formData - The form response data
+ * @return {Object} Standardized data structure
+ */
+function standardizeFormDataForCsvCompatibility(formData) {
+  console.log("Standardizing form data for CSV compatibility");
+  
+  let standardized;
+  
+  // Handle batch data (multiple responses)
+  if (formData.responses && Array.isArray(formData.responses)) {
+    standardized = {
+      responseCount: formData.responseCount || formData.responses.length,
+      responses: formData.responses.map(function(response, index) {
+        return {
+          // Normalize response ID to be predictable
+          responseId: "response-" + index,
+          // Remove timestamp entirely - not needed for CSV compatibility
+          // Standardize items
+          items: (response.items || [])
+            .slice() // Create copy
+            .sort(function(a, b) {
+              // Sort by title alphabetically for consistency
+              return (a.title || "").localeCompare(b.title || "");
+            })
+            .map(function(item) {
+              return {
+                // Remove dynamic itemId and type
+                title: item.title || "",
+                response: item.response !== null && item.response !== undefined ? String(item.response) : ""
+              };
+            })
+        };
+      })
+    };
+  }
+  // Handle single response
+  else if (formData.items && Array.isArray(formData.items)) {
+    standardized = {
+      responseId: "response-0",
+      // Remove timestamp entirely
+      items: formData.items
+        .slice()
+        .sort(function(a, b) {
+          return (a.title || "").localeCompare(b.title || "");
+        })
+        .map(function(item) {
+          return {
+            title: item.title || "",
+            response: item.response !== null && item.response !== undefined ? String(item.response) : ""
+          };
+        })
+    };
+  }
+  else {
+    // If it's already in a different format, return as-is
+    standardized = formData;
+  }
+  
+  console.log("Data standardized successfully");
+  return standardized;
+}
+
+/**
  * Main function to process all responses in batch.
  * Called by time-based triggers or manually.
  * Always processes ALL responses, not just new ones.
@@ -350,18 +393,24 @@ function processBatchedResponses() {
     
     console.log(`Processing ALL ${allResponses.length} responses`);
     
-    // Extract and standardize all response data
+    // Extract all response data
     const batchData = allResponses.map(response => 
       FormHandler.extractResponseData(response)
     );
     
-    // Create batch hash from all responses
-    const batchHash = Hashing.hashBatchData({
+    // Create batch structure
+    const batchStructure = {
       formId: form.getId(),
       formTitle: form.getTitle(),
       responseCount: batchData.length,
       responses: batchData
-    });
+    };
+    
+    // Apply standardization for CSV compatibility
+    const standardizedBatch = standardizeFormDataForCsvCompatibility(batchStructure);
+    
+    // Create batch hash from standardized data
+    const batchHash = Hashing.hashBatchData(standardizedBatch);
     
     // Prepare metadata for the batch
     const metadata = {
@@ -373,11 +422,11 @@ function processBatchedResponses() {
         firstResponseId: batchData.length > 0 ? batchData[0]?.responseId : null,
         lastResponseId: batchData.length > 0 ? batchData[batchData.length - 1]?.responseId : null,
         totalFormResponses: allResponses.length,
-        processingType: "all_responses"
+        processingType: "all_responses_standardized"
       }
     };
     
-    console.log(`Generated batch hash: ${batchHash} for ${batchData.length} responses`);
+    console.log(`Generated standardized batch hash: ${batchHash} for ${batchData.length} responses`);
     
     // Send batch hash to API
     const result = ApiClient.sendHashToApi(batchHash, metadata);
@@ -392,13 +441,13 @@ function processBatchedResponses() {
       };
     }
     
-    console.log(`Batch processing completed successfully - processed ALL responses`);
+    console.log(`Batch processing completed successfully - processed ALL responses with standardization`);
     return { 
       success: true, 
       hash: batchHash,
       processed: allResponses.length,
       total: allResponses.length,
-      processingType: "all_responses"
+      processingType: "all_responses_standardized"
     };
   } catch (error) {
     console.error(`Error in batch processing: ${error.toString()}`);
