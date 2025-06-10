@@ -70,6 +70,13 @@
       .secondary-btn:hover {
         background-color: #e8e8e9;
       }
+      .small-btn {
+        padding: 6px 12px;
+        font-size: 12px;
+        width: auto;
+        margin: 4px 2px;
+        display: inline-block;
+      }
       .message {
         padding: 8px 12px;
         margin: 12px 0;
@@ -90,6 +97,11 @@
         background-color: #e8f0fe;
         color: #1967d2;
         border: 1px solid #4285F4;
+      }
+      .warning {
+        background-color: #fef7e0;
+        color: #b7a100;
+        border: 1px solid #fbbc04;
       }
       .hidden {
         display: none;
@@ -113,6 +125,38 @@
         font-size: 12px;
         color: #5f6368;
         margin-top: 4px;
+      }
+      .config-row {
+        display: flex;
+        align-items: center;
+        margin: 8px 0;
+        gap: 8px;
+      }
+      .config-row label {
+        font-size: 12px;
+        color: #5f6368;
+        min-width: 60px;
+      }
+      .config-row select, .config-row input {
+        flex: 1;
+        padding: 4px 8px;
+        border: 1px solid #dadce0;
+        border-radius: 4px;
+        font-size: 12px;
+      }
+      .stats-grid {
+        display: grid;
+        grid-template-columns: auto 1fr;
+        gap: 4px 8px;
+        font-size: 12px;
+        margin: 8px 0;
+      }
+      .stats-label {
+        color: #5f6368;
+        font-weight: 500;
+      }
+      .stats-value {
+        color: #333;
       }
       .footer {
         text-align: center;
@@ -144,13 +188,41 @@
         0% { transform: rotate(0deg); }
         100% { transform: rotate(360deg); }
       }
+      .collapsible {
+        background-color: #f8f9fa;
+        border: 1px solid #e0e0e0;
+        border-radius: 4px;
+        margin: 8px 0;
+      }
+      .collapsible-header {
+        padding: 8px 12px;
+        cursor: pointer;
+        font-weight: 500;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+      .collapsible-content {
+        padding: 12px;
+        border-top: 1px solid #e0e0e0;
+        display: none;
+      }
+      .collapsible.open .collapsible-content {
+        display: block;
+      }
+      .chevron {
+        transition: transform 0.2s;
+      }
+      .collapsible.open .chevron {
+        transform: rotate(180deg);
+      }
     </style>
   </head>
   <body>
     <div class="container">
       <div class="header">
         <h1>Adaverc</h1>
-        <small>Blockchain Verification for Forms</small>
+        <small>Batch Blockchain Verification</small>
       </div>
       
       <div id="status-message" class="message hidden"></div>
@@ -163,32 +235,72 @@
       </div>
       
       <div class="section">
-        <div class="section-title">Automatic Verification</div>
-        <p style="font-size: 14px; margin: 8px 0;">
-          Enable automatic hashing of all form responses for blockchain verification.
-        </p>
-        
-        <div style="margin: 12px 0;">
-          <span style="font-weight: 500;">Status:</span>
-          <span id="status-badge" class="status-badge badge-disabled">Checking...</span>
+        <div class="section-title">Processing Status</div>
+        <div id="processing-status">
+          <span class="loading"></span>Loading status...
         </div>
-        
-        <button class="btn" id="enableBtn">Enable Automatic Verification</button>
-        <button class="btn secondary-btn hidden" id="disableBtn">Disable Verification</button>
-        
-        <p class="help-text">
-          When enabled, each form submission will be automatically hashed and recorded for verification.
-        </p>
       </div>
       
       <div class="section">
-        <div class="section-title">Test Verification</div>
-        <p style="font-size: 14px; margin: 8px 0;">
-          Process the most recent form response to test the verification system.
-        </p>
+        <div class="section-title">API Configuration</div>
+        <div class="config-row">
+          <label>API Key:</label>
+          <input type="password" id="api-key-input" placeholder="Enter your API key" style="flex: 1;">
+        </div>
+        <div style="margin-top: 8px;">
+          <button class="btn small-btn" id="saveApiKeyBtn">Save API Key</button>
+          <button class="btn secondary-btn small-btn" id="testApiBtn">Test Connection</button>
+        </div>
+        <div id="api-test-result" class="message info hidden"></div>
+        <p class="help-text">Required for blockchain verification services.</p>
+      </div>
+      
+      <div class="section">
+        <div class="section-title">Batch Configuration</div>
         
-        <button class="btn secondary-btn" id="testBtn">Test With Latest Response</button>
-        <div id="test-result" class="message info hidden"></div>
+        <div style="margin: 12px 0;">
+          <span style="font-weight: 500;">Status:</span>
+          <span id="batch-status-badge" class="status-badge badge-disabled">Checking...</span>
+        </div>
+        
+        <div class="collapsible" id="config-panel">
+          <div class="collapsible-header" onclick="toggleConfig()">
+            <span>Configuration Settings</span>
+            <span class="chevron">▼</span>
+          </div>
+          <div class="collapsible-content">
+            <div class="config-row">
+              <label>Frequency:</label>
+              <select id="frequency-select">
+                <option value="manual">Manual Only</option>
+                <option value="hourly">Every N Hours</option>
+                <option value="daily">Daily</option>
+                <option value="weekly">Weekly</option>
+              </select>
+            </div>
+            
+            <div class="config-row" id="interval-row">
+              <label>Hours:</label>
+              <input type="number" id="interval-input" min="1" max="24" value="3" placeholder="Hours">
+            </div>
+            
+            <div class="config-row" id="time-row">
+              <label>Time:</label>
+              <input type="time" id="time-input" value="11:00">
+            </div>
+            
+            <div style="margin-top: 12px;">
+              <button class="btn small-btn" id="saveConfigBtn">Save Configuration</button>
+              <button class="btn secondary-btn small-btn" id="disableBtn">Disable</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="section">
+        <div class="section-title">Manual Processing</div>
+        <button class="btn secondary-btn" id="processNowBtn">Process All Responses</button>
+        <div id="process-result" class="message info hidden"></div>
       </div>
       
       <div class="footer">
@@ -204,6 +316,12 @@
         google.script.run.showAbout();
       }
       
+      // Toggle configuration panel
+      function toggleConfig() {
+        const panel = document.getElementById('config-panel');
+        panel.classList.toggle('open');
+      }
+      
       // Load form information
       google.script.run
         .withSuccessHandler(function(formInfo) {
@@ -213,7 +331,8 @@
           } else {
             infoDiv.innerHTML = 
               '<strong>' + formInfo.title + '</strong><br>' +
-              '<span style="font-size: 12px; color: #5f6368;">Form ID: ' + formInfo.id + '</span>';
+              '<span style="font-size: 12px; color: #5f6368;">Form ID: ' + formInfo.id + '</span><br>' +
+              '<span style="font-size: 12px; color: #5f6368;">Total Responses: ' + formInfo.totalResponses + '</span>';
           }
         })
         .withFailureHandler(function(error) {
@@ -222,20 +341,81 @@
         })
         .getFormInfo();
       
-      // Check if trigger is enabled
-      function checkTriggerStatus() {
+      // Load processing status
+      function loadProcessingStatus() {
         google.script.run
-          .withSuccessHandler(function(isEnabled) {
-            updateTriggerStatus(isEnabled);
+          .withSuccessHandler(function(status) {
+            const statusDiv = document.getElementById('processing-status');
+            if (status.error) {
+              statusDiv.innerHTML = '<span style="color: #d33b2c;">Unable to load status</span>';
+            } else {
+              let html = '<div class="stats-grid">';
+              html += '<span class="stats-label">Total Responses:</span>';
+              html += '<span class="stats-value">' + status.totalResponses + '</span>';
+              
+              if (status.nextScheduled) {
+                html += '<span class="stats-label">Next Scheduled:</span>';
+                html += '<span class="stats-value">' + new Date(status.nextScheduled).toLocaleString() + '</span>';
+              }
+              
+              html += '</div>';
+              statusDiv.innerHTML = html;
+            }
+            
+            // Update batch status
+            updateBatchStatus(status.config);
           })
           .withFailureHandler(function(error) {
-            updateTriggerStatus(false);
+            document.getElementById('processing-status').innerHTML = 
+              '<span style="color: #d33b2c;">Error loading status</span>';
           })
-          .isTriggerEnabled();
+          .getProcessingStatus();
       }
       
-      // Initial trigger check
-      checkTriggerStatus();
+      // Initial status load
+      loadProcessingStatus();
+      
+      // Update batch status display
+      function updateBatchStatus(config) {
+        const statusBadge = document.getElementById('batch-status-badge');
+        const frequencySelect = document.getElementById('frequency-select');
+        const intervalRow = document.getElementById('interval-row');
+        const timeRow = document.getElementById('time-row');
+        const intervalInput = document.getElementById('interval-input');
+        const timeInput = document.getElementById('time-input');
+        
+        if (config.enabled) {
+          statusBadge.textContent = 'Enabled (' + config.frequency + ')';
+          statusBadge.className = 'status-badge badge-enabled';
+        } else {
+          statusBadge.textContent = 'Disabled';
+          statusBadge.className = 'status-badge badge-disabled';
+        }
+        
+        // Update form fields
+        frequencySelect.value = config.frequency || 'manual';
+        intervalInput.value = config.interval || 3;
+        timeInput.value = config.time || '11:00';
+        
+        // Show/hide relevant fields
+        updateConfigVisibility();
+      }
+      
+      // Update configuration field visibility
+      function updateConfigVisibility() {
+        const frequency = document.getElementById('frequency-select').value;
+        const intervalRow = document.getElementById('interval-row');
+        const timeRow = document.getElementById('time-row');
+        
+        // Show interval only for hourly
+        intervalRow.style.display = frequency === 'hourly' ? 'flex' : 'none';
+        
+        // Show time for daily and weekly
+        timeRow.style.display = (frequency === 'daily' || frequency === 'weekly') ? 'flex' : 'none';
+      }
+      
+      // Frequency change handler
+      document.getElementById('frequency-select').addEventListener('change', updateConfigVisibility);
       
       // Helper function to show messages
       function showMessage(message, type) {
@@ -250,102 +430,168 @@
         }, 5000);
       }
       
-      // Update trigger status UI
-      function updateTriggerStatus(isEnabled) {
-        const statusBadge = document.getElementById('status-badge');
-        const enableBtn = document.getElementById('enableBtn');
-        const disableBtn = document.getElementById('disableBtn');
+      // Test API Connection
+      document.getElementById('testApiBtn').addEventListener('click', function() {
+        const apiTestResult = document.getElementById('api-test-result');
+        const btn = this;
         
-        if (isEnabled) {
-          statusBadge.textContent = 'Enabled';
-          statusBadge.className = 'status-badge badge-enabled';
-          enableBtn.classList.add('hidden');
-          disableBtn.classList.remove('hidden');
-        } else {
-          statusBadge.textContent = 'Disabled';
-          statusBadge.className = 'status-badge badge-disabled';
-          enableBtn.classList.remove('hidden');
-          disableBtn.classList.add('hidden');
-        }
-      }
-      
-      // Enable button click handler
-      document.getElementById('enableBtn').addEventListener('click', function() {
-        this.disabled = true;
-        this.innerHTML = '<span class="loading"></span>Enabling...';
+        btn.disabled = true;
+        btn.innerHTML = '<span class="loading"></span>Testing...';
+        apiTestResult.textContent = 'Testing API connection...';
+        apiTestResult.className = 'message info';
+        apiTestResult.classList.remove('hidden');
         
         google.script.run
           .withSuccessHandler(function(result) {
             if (result.success) {
-              showMessage('Automatic verification enabled successfully!', 'success');
-              updateTriggerStatus(true);
+              apiTestResult.innerHTML = '<strong>✓ Connection Successful!</strong><br>' + (result.message || 'API key is valid and working.');
+              apiTestResult.className = 'message success';
             } else {
-              showMessage(result.error || 'Failed to enable verification', 'error');
+              apiTestResult.innerHTML = '<strong>✗ Connection Failed</strong><br>' + (result.error || 'Unable to connect to API');
+              apiTestResult.className = 'message error';
             }
-            document.getElementById('enableBtn').disabled = false;
-            document.getElementById('enableBtn').innerHTML = 'Enable Automatic Verification';
+            btn.disabled = false;
+            btn.innerHTML = 'Test Connection';
+          })
+          .withFailureHandler(function(error) {
+            apiTestResult.innerHTML = '<strong>✗ Test Failed</strong><br>Error: ' + error;
+            apiTestResult.className = 'message error';
+            btn.disabled = false;
+            btn.innerHTML = 'Test Connection';
+          })
+          .testApiConnection();
+      });
+      
+      // Save API Key
+      document.getElementById('saveApiKeyBtn').addEventListener('click', function() {
+        const apiKey = document.getElementById('api-key-input').value.trim();
+        
+        if (!apiKey) {
+          showMessage('Please enter a valid API key', 'error');
+          return;
+        }
+        
+        this.disabled = true;
+        this.innerHTML = '<span class="loading"></span>Saving...';
+        
+        google.script.run
+          .withSuccessHandler(function(result) {
+            if (result.success) {
+              showMessage('API key saved successfully!', 'success');
+              document.getElementById('api-key-input').value = '';
+            } else {
+              showMessage(result.error || 'Failed to save API key', 'error');
+            }
+            document.getElementById('saveApiKeyBtn').disabled = false;
+            document.getElementById('saveApiKeyBtn').innerHTML = 'Save API Key';
           })
           .withFailureHandler(function(error) {
             showMessage('Error: ' + error, 'error');
-            document.getElementById('enableBtn').disabled = false;
-            document.getElementById('enableBtn').innerHTML = 'Enable Automatic Verification';
+            document.getElementById('saveApiKeyBtn').disabled = false;
+            document.getElementById('saveApiKeyBtn').innerHTML = 'Save API Key';
           })
-          .createFormTrigger();
+          .saveApiKey(apiKey);
       });
       
-      // Disable button click handler
+      // Save configuration
+      document.getElementById('saveConfigBtn').addEventListener('click', function() {
+        const frequency = document.getElementById('frequency-select').value;
+        const interval = parseInt(document.getElementById('interval-input').value) || 3;
+        const time = document.getElementById('time-input').value || '11:00';
+        
+        const config = {
+          enabled: frequency !== 'manual',
+          frequency: frequency,
+          interval: interval,
+          time: time
+        };
+        
+        this.disabled = true;
+        this.innerHTML = '<span class="loading"></span>Saving...';
+        
+        google.script.run
+          .withSuccessHandler(function(result) {
+            if (result.success) {
+              showMessage('Configuration saved successfully!', 'success');
+              loadProcessingStatus(); // Refresh status
+            } else {
+              showMessage(result.error || 'Failed to save configuration', 'error');
+            }
+            document.getElementById('saveConfigBtn').disabled = false;
+            document.getElementById('saveConfigBtn').innerHTML = 'Save Configuration';
+          })
+          .withFailureHandler(function(error) {
+            showMessage('Error: ' + error, 'error');
+            document.getElementById('saveConfigBtn').disabled = false;
+            document.getElementById('saveConfigBtn').innerHTML = 'Save Configuration';
+          })
+          .saveBatchConfig(config);
+      });
+      
+      // Disable batch processing
       document.getElementById('disableBtn').addEventListener('click', function() {
+        const config = {
+          enabled: false,
+          frequency: 'manual'
+        };
+        
         this.disabled = true;
         this.innerHTML = '<span class="loading"></span>Disabling...';
         
         google.script.run
-          .withSuccessHandler(function() {
-            showMessage('Automatic verification disabled', 'info');
-            updateTriggerStatus(false);
+          .withSuccessHandler(function(result) {
+            if (result.success) {
+              showMessage('Batch processing disabled', 'info');
+              loadProcessingStatus(); // Refresh status
+            } else {
+              showMessage(result.error || 'Failed to disable', 'error');
+            }
             document.getElementById('disableBtn').disabled = false;
-            document.getElementById('disableBtn').innerHTML = 'Disable Verification';
+            document.getElementById('disableBtn').innerHTML = 'Disable';
           })
           .withFailureHandler(function(error) {
             showMessage('Error: ' + error, 'error');
             document.getElementById('disableBtn').disabled = false;
-            document.getElementById('disableBtn').innerHTML = 'Disable Verification';
+            document.getElementById('disableBtn').innerHTML = 'Disable';
           })
-          .removeTrigger();
+          .saveBatchConfig(config);
       });
       
-      // Test button click handler
-      document.getElementById('testBtn').addEventListener('click', function() {
-        const testResult = document.getElementById('test-result');
+      // Process now button
+      document.getElementById('processNowBtn').addEventListener('click', function() {
+        const processResult = document.getElementById('process-result');
         const btn = this;
         
         btn.disabled = true;
         btn.innerHTML = '<span class="loading"></span>Processing...';
-        testResult.textContent = 'Processing latest response...';
-        testResult.className = 'message info';
-        testResult.classList.remove('hidden');
+        processResult.textContent = 'Processing all responses...';
+        processResult.className = 'message info';
+        processResult.classList.remove('hidden');
         
         google.script.run
           .withSuccessHandler(function(result) {
             if (result.success) {
-              testResult.innerHTML = 
+              processResult.innerHTML = 
                 '<strong>✓ Success!</strong><br>' +
+                'Processed: ' + result.processed + ' responses<br>' +
                 'Hash: <code style="font-size: 11px;">' + result.hash.substring(0, 16) + '...</code><br>' +
-                '<a href="https://adaverc.vercel.app/verify" target="_blank">Verify this response →</a>';
-              testResult.className = 'message success';
+                '<a href="https://adaverc.vercel.app/verify/' + result.hash + '" target="_blank">Verify</a>';
+              processResult.className = 'message success';
+              loadProcessingStatus(); // Refresh status
             } else {
-              testResult.textContent = result.error || 'Unable to process response';
-              testResult.className = 'message error';
+              processResult.textContent = result.error || 'Unable to process responses';
+              processResult.className = 'message error';
             }
             btn.disabled = false;
-            btn.innerHTML = 'Test With Latest Response';
+            btn.innerHTML = 'Process All Responses';
           })
           .withFailureHandler(function(error) {
-            testResult.textContent = 'Error: ' + error;
-            testResult.className = 'message error';
+            processResult.textContent = 'Error: ' + error;
+            processResult.className = 'message error';
             btn.disabled = false;
-            btn.innerHTML = 'Test With Latest Response';
+            btn.innerHTML = 'Process All Responses';
           })
-          .processLatestResponse();
+          .processBatchedResponses();
       });
     </script>
   </body>

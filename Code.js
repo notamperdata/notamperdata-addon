@@ -1,11 +1,38 @@
-// API endpoint - Update this to match your deployment
+/**
+ * Get last processed timestamp.
+ * @return {string|null} ISO timestamp or null
+ */
+function getLastProcessedTimestamp() {
+  try {
+    return PropertiesService.getDocumentProperties().getProperty(LAST_PROCESSED_KEY);
+  } catch (error) {
+    console.error('Error getting last processed timestamp:', error);
+    return null;
+  }
+}
+
+/**
+ * Update last processed timestamp.
+ * @param {string} timestamp - ISO timestamp
+ */
+function setLastProcessedTimestamp(timestamp) {
+  try {
+    PropertiesService.getDocumentProperties().setProperty(LAST_PROCESSED_KEY, timestamp);
+  } catch (error) {
+    console.error('Error setting last processed timestamp:', error);
+  }
+}// API endpoint - Update this to match your deployment
 // For testing: "http://localhost:3000/api"
 // For production: "https://adaverc.vercel.app/api"
 const API_ENDPOINT = "https://adaverc.vercel.app/api";
 
 // Add-on metadata
 const ADDON_NAME = "Adaverc";
-const ADDON_VERSION = "1.0.0";
+const ADDON_VERSION = "1.1.0";
+
+// Configuration for batch processing
+const BATCH_CONFIG_KEY = "ADAVERC_BATCH_CONFIG";
+const API_KEY_CONFIG_KEY = "ADAVERC_API_KEY";
 
 /**
  * Runs when the add-on is installed.
@@ -39,7 +66,7 @@ function onOpen(e) {
 function showSidebar() {
   const ui = HtmlService.createHtmlOutputFromFile('Sidebar')
     .setTitle(ADDON_NAME)
-    .setWidth(300);
+    .setWidth(350);
   FormApp.getUi().showSidebar(ui);
 }
 
@@ -53,11 +80,12 @@ function showAbout() {
       <p style="margin-bottom: 15px;">
         Version ${ADDON_VERSION}<br><br>
         Adaverc provides blockchain-based verification for Google Forms responses, 
-        ensuring data integrity through cryptographic hashing.
+        ensuring data integrity through cryptographic hashing with cost-efficient batch processing.
       </p>
       <p style="margin-bottom: 15px;">
         <strong>How it works:</strong><br>
-        • Form responses are hashed using SHA-256<br>
+        • Form responses are collected and processed in batches<br>
+        • Responses are hashed together at scheduled intervals<br>
         • Only hashes are sent to our servers<br>
         • Your actual form data never leaves Google<br>
         • Hashes can be verified at any time
@@ -87,11 +115,16 @@ function showAbout() {
 function getFormInfo() {
   try {
     const form = FormApp.getActiveForm();
+    const responses = form.getResponses();
+    const config = getBatchConfig();
+    
     return {
       title: form.getTitle(),
       id: form.getId(),
       description: form.getDescription() || 'No description',
-      isAcceptingResponses: form.isAcceptingResponses()
+      isAcceptingResponses: form.isAcceptingResponses(),
+      totalResponses: responses.length,
+      batchConfig: config
     };
   } catch (error) {
     console.error('Error getting form info:', error);
@@ -102,163 +135,350 @@ function getFormInfo() {
 }
 
 /**
- * Creates a form submit trigger.
+ * Save API key.
+ * @param {string} apiKey - The API key to save
  * @return {Object} Result object
  */
-function createFormTrigger() {
+function saveApiKey(apiKey) {
   try {
-    // Remove any existing triggers first
-    removeTrigger();
-    
-    // Create new trigger
-    ScriptApp.newTrigger('onFormSubmit')
-      .forForm(FormApp.getActiveForm())
-      .onFormSubmit()
-      .create();
-    
-    console.log('Form submit trigger created successfully');
-    return { success: true };
-  } catch (error) {
-    console.error('Error creating trigger:', error);
-    return { 
-      success: false, 
-      error: 'Unable to enable automatic recording. Please check your permissions.' 
-    };
-  }
-}
-
-/**
- * Removes form submit trigger.
- * @return {boolean} Whether a trigger was removed
- */
-function removeTrigger() {
-  try {
-    const triggers = ScriptApp.getUserTriggers(FormApp.getActiveForm());
-    let removed = false;
-    
-    triggers.forEach(function(trigger) {
-      if (trigger.getEventType() === ScriptApp.EventType.ON_FORM_SUBMIT) {
-        ScriptApp.deleteTrigger(trigger);
-        removed = true;
-      }
-    });
-    
-    return removed;
-  } catch (error) {
-    console.error('Error removing trigger:', error);
-    return false;
-  }
-}
-
-/**
- * Checks if trigger is enabled.
- * @return {boolean} Whether trigger is enabled
- */
-function isTriggerEnabled() {
-  try {
-    const triggers = ScriptApp.getUserTriggers(FormApp.getActiveForm());
-    return triggers.some(function(trigger) {
-      return trigger.getEventType() === ScriptApp.EventType.ON_FORM_SUBMIT;
-    });
-  } catch (error) {
-    console.error('Error checking triggers:', error);
-    return false;
-  }
-}
-
-/**
- * Handles form submission.
- * @param {Object} e - The form submit event
- */
-function onFormSubmit(e) {
-  try {
-    console.log("Processing form submission");
-    
-    const formResponse = e.response;
-    const responseData = FormHandler.extractResponseData(formResponse);
-    const hash = Hashing.hashResponseData(responseData);
-    
-    const metadata = {
-      formId: formResponse.getFormId(),
-      responseId: formResponse.getId(),
-      timestamp: new Date().toISOString()
-    };
-    
-    console.log(`Generated hash: ${hash} for response ID: ${metadata.responseId}`);
-    
-    // Send hash to API
-    const result = ApiClient.sendHashToApi(hash, metadata);
-    
-    if (result.error) {
-      console.error(`API error: ${JSON.stringify(result)}`);
-      // Don't throw error - we don't want to break form submission
-      return { success: false, error: result.error };
+    if (!apiKey || apiKey.trim() === '') {
+      return { success: false, error: 'API key cannot be empty' };
     }
     
-    console.log(`Response processed successfully: ${metadata.responseId}`);
-    return { success: true, hash: hash };
+    PropertiesService.getDocumentProperties().setProperty(API_KEY_CONFIG_KEY, apiKey.trim());
+    console.log('API key saved successfully');
+    return { success: true };
   } catch (error) {
-    // Log error but don't break form submission
-    console.error(`Error processing submission: ${error.toString()}`);
+    console.error('Error saving API key:', error);
     return { success: false, error: error.toString() };
   }
 }
 
 /**
- * Processes the latest response for testing.
+ * Get saved API key.
+ * @return {string|null} The saved API key or null
+ */
+function getApiKey() {
+  try {
+    return PropertiesService.getDocumentProperties().getProperty(API_KEY_CONFIG_KEY);
+  } catch (error) {
+    console.error('Error getting API key:', error);
+    return null;
+  }
+}
+
+/**
+ * Get current batch configuration.
+ * @return {Object} Batch configuration
+ */
+function getBatchConfig() {
+  try {
+    const config = PropertiesService.getDocumentProperties().getProperty(BATCH_CONFIG_KEY);
+    if (config) {
+      return JSON.parse(config);
+    }
+    
+    // Default configuration
+    return {
+      enabled: false,
+      frequency: 'daily', // 'manual', 'hourly', 'daily', 'weekly'
+      time: '11:00', // For daily/weekly scheduling
+      interval: 24 // Hours for interval-based scheduling
+    };
+  } catch (error) {
+    console.error('Error getting batch config:', error);
+    return { enabled: false, frequency: 'manual' };
+  }
+}
+
+/**
+ * Save batch configuration.
+ * @param {Object} config - Batch configuration
+ * @return {Object} Result object
+ */
+function saveBatchConfig(config) {
+  try {
+    PropertiesService.getDocumentProperties().setProperty(
+      BATCH_CONFIG_KEY, 
+      JSON.stringify(config)
+    );
+    
+    // Update triggers based on new configuration
+    if (config.enabled) {
+      updateBatchTriggers(config);
+    } else {
+      removeBatchTriggers();
+    }
+    
+    return { success: true };
+  } catch (error) {
+    console.error('Error saving batch config:', error);
+    return { success: false, error: error.toString() };
+  }
+}
+
+/**
+ * Get last processed timestamp.
+ * @return {string|null} ISO timestamp or null
+ */
+function getLastProcessedTimestamp() {
+  try {
+    return PropertiesService.getDocumentProperties().getProperty(LAST_PROCESSED_KEY);
+  } catch (error) {
+    console.error('Error getting last processed timestamp:', error);
+    return null;
+  }
+}
+
+/**
+ * Update last processed timestamp.
+ * @param {string} timestamp - ISO timestamp
+ */
+function setLastProcessedTimestamp(timestamp) {
+  try {
+    PropertiesService.getDocumentProperties().setProperty(LAST_PROCESSED_KEY, timestamp);
+  } catch (error) {
+    console.error('Error setting last processed timestamp:', error);
+  }
+}
+
+/**
+ * Update batch processing triggers based on configuration.
+ * @param {Object} config - Batch configuration
+ */
+function updateBatchTriggers(config) {
+  try {
+    // Remove existing triggers first
+    removeBatchTriggers();
+    
+    const form = FormApp.getActiveForm();
+    
+    switch (config.frequency) {
+      case 'manual':
+        // No automatic triggers for manual mode
+        break;
+        
+      case 'hourly':
+        ScriptApp.newTrigger('processBatchedResponses')
+          .timeBased()
+          .everyHours(config.interval || 1)
+          .create();
+        break;
+        
+      case 'daily':
+        const [hours, minutes] = (config.time || '11:00').split(':');
+        ScriptApp.newTrigger('processBatchedResponses')
+          .timeBased()
+          .everyDays(1)
+          .atHour(parseInt(hours))
+          .nearMinute(parseInt(minutes))
+          .create();
+        break;
+        
+      case 'weekly':
+        const [weekHours, weekMinutes] = (config.time || '11:00').split(':');
+        ScriptApp.newTrigger('processBatchedResponses')
+          .timeBased()
+          .everyWeeks(1)
+          .onWeekDay(ScriptApp.WeekDay.MONDAY)
+          .atHour(parseInt(weekHours))
+          .nearMinute(parseInt(weekMinutes))
+          .create();
+        break;
+    }
+    
+    console.log(`Batch triggers updated for ${config.frequency} processing`);
+  } catch (error) {
+    console.error('Error updating batch triggers:', error);
+    throw error;
+  }
+}
+
+/**
+ * Remove all batch processing triggers.
+ */
+function removeBatchTriggers() {
+  try {
+    const triggers = ScriptApp.getProjectTriggers();
+    triggers.forEach(function(trigger) {
+      if (trigger.getHandlerFunction() === 'processBatchedResponses') {
+        ScriptApp.deleteTrigger(trigger);
+      }
+    });
+    console.log('Batch triggers removed');
+  } catch (error) {
+    console.error('Error removing batch triggers:', error);
+  }
+}
+
+/**
+ * Check if batch processing is enabled.
+ * @return {boolean} Whether batch processing is enabled
+ */
+function isBatchProcessingEnabled() {
+  try {
+    const config = getBatchConfig();
+    return config.enabled === true;
+  } catch (error) {
+    console.error('Error checking batch status:', error);
+    return false;
+  }
+}
+
+/**
+ * Main function to process all responses in batch.
+ * Called by time-based triggers or manually.
+ * Always processes ALL responses, not just new ones.
  * @return {Object} Processing result
  */
-function processLatestResponse() {
+function processBatchedResponses() {
   try {
-    const form = FormApp.getActiveForm();
-    const formResponses = form.getResponses();
+    console.log("Starting batch processing of ALL responses");
     
-    if (formResponses.length === 0) {
+    const form = FormApp.getActiveForm();
+    const allResponses = form.getResponses();
+    
+    if (allResponses.length === 0) {
+      console.log("No responses to process");
       return { 
-        success: false,
-        error: "No responses found. Submit a test response first." 
+        success: true, 
+        message: "No responses found in form",
+        processed: 0,
+        total: 0
       };
     }
     
-    // Get the most recent response
-    const latestResponse = formResponses[formResponses.length - 1];
+    console.log(`Processing ALL ${allResponses.length} responses`);
     
-    console.log(`Processing latest response (ID: ${latestResponse.getId()})`);
+    // Extract and standardize all response data
+    const batchData = allResponses.map(response => 
+      FormHandler.extractResponseData(response)
+    );
     
-    const responseData = FormHandler.extractResponseData(latestResponse);
-    const hash = Hashing.hashResponseData(responseData);
+    // Create batch hash from all responses
+    const batchHash = Hashing.hashBatchData({
+      formId: form.getId(),
+      formTitle: form.getTitle(),
+      responseCount: batchData.length,
+      responses: batchData
+    });
+    
+    // Prepare metadata for the batch
     const metadata = {
       formId: form.getId(),
-      responseId: latestResponse.getId(),
-      timestamp: latestResponse.getTimestamp().toISOString()
+      responseId: `batch-all-${Date.now()}`,
+      timestamp: new Date().toISOString(),
+      batchInfo: {
+        responseCount: batchData.length,
+        firstResponseId: batchData.length > 0 ? batchData[0]?.responseId : null,
+        lastResponseId: batchData.length > 0 ? batchData[batchData.length - 1]?.responseId : null,
+        totalFormResponses: allResponses.length,
+        processingType: "all_responses"
+      }
     };
     
-    // Send hash to API
-    const result = ApiClient.sendHashToApi(hash, metadata);
+    console.log(`Generated batch hash: ${batchHash} for ${batchData.length} responses`);
+    
+    // Send batch hash to API
+    const result = ApiClient.sendHashToApi(batchHash, metadata);
     
     if (result.error) {
       console.error(`API error: ${JSON.stringify(result)}`);
       return { 
         success: false, 
-        error: result.error 
+        error: result.error,
+        processed: 0,
+        total: allResponses.length
       };
     }
     
-    return {
-      success: true,
-      hash: hash,
-      responseId: metadata.responseId
+    console.log(`Batch processing completed successfully - processed ALL responses`);
+    return { 
+      success: true, 
+      hash: batchHash,
+      processed: allResponses.length,
+      total: allResponses.length,
+      processingType: "all_responses"
     };
   } catch (error) {
-    console.error(`Error processing response: ${error.toString()}`);
+    console.error(`Error in batch processing: ${error.toString()}`);
     return {
       success: false,
-      error: 'Unable to process response. Please try again.'
+      error: error.toString(),
+      processed: 0
     };
   }
 }
 
+/**
+ * Test API connection and authentication.
+ * @return {Object} Test result with success/error status
+ */
+function testApiConnection() {
+  try {
+    const result = ApiClient.testApiConnection();
+    console.log('API connection test result:', result);
+    return result;
+  } catch (error) {
+    console.error('Error testing API connection:', error);
+    return {
+      success: false,
+      error: 'Failed to test API connection: ' + error.toString()
+    };
+  }
+}
 
+/**
+ * Get processing status and statistics.
+ * @return {Object} Status information
+ */
+function getProcessingStatus() {
+  try {
+    const form = FormApp.getActiveForm();
+    const allResponses = form.getResponses();
+    const config = getBatchConfig();
+    
+    let nextScheduled = null;
+    
+    // Calculate next scheduled run
+    if (config.enabled && config.frequency !== 'manual') {
+      // This is a simplified calculation - in practice, you'd check the actual trigger schedule
+      const now = new Date();
+      switch (config.frequency) {
+        case 'hourly':
+          nextScheduled = new Date(now.getTime() + (config.interval || 1) * 60 * 60 * 1000);
+          break;
+        case 'daily':
+          const [hours, minutes] = (config.time || '11:00').split(':');
+          nextScheduled = new Date();
+          nextScheduled.setHours(parseInt(hours), parseInt(minutes), 0, 0);
+          if (nextScheduled <= now) {
+            nextScheduled.setDate(nextScheduled.getDate() + 1);
+          }
+          break;
+        case 'weekly':
+          // Simplified - next Monday at specified time
+          nextScheduled = new Date();
+          const daysUntilMonday = (1 + 7 - nextScheduled.getDay()) % 7 || 7;
+          nextScheduled.setDate(nextScheduled.getDate() + daysUntilMonday);
+          const [weekHours, weekMinutes] = (config.time || '11:00').split(':');
+          nextScheduled.setHours(parseInt(weekHours), parseInt(weekMinutes), 0, 0);
+          break;
+      }
+    }
+    
+    return {
+      totalResponses: allResponses.length,
+      readyToProcess: allResponses.length, // All responses are always ready to process
+      nextScheduled: nextScheduled ? nextScheduled.toISOString() : null,
+      config: config,
+      hasApiKey: !!getApiKey()
+    };
+  } catch (error) {
+    console.error('Error getting processing status:', error);
+    return { error: error.toString() };
+  }
+}
 
 //HELPER FUNCTIONS
 
@@ -336,7 +556,6 @@ var FormHandler = (function() {
   };
 })();
 
-
 /**
  * Contains functions for hashing response data.
  */
@@ -347,23 +566,46 @@ var Hashing = (function() {
    * @return {String} SHA-256 hash of the response data
    */
   function hashResponseData(responseData) {
+    return createDeterministicHash(responseData);
+  }
+  
+  /**
+   * Creates a deterministic hash from batch data.
+   * @param {Object} batchData - The batch data containing multiple responses
+   * @return {String} SHA-256 hash of the batch data
+   */
+  function hashBatchData(batchData) {
+    return createDeterministicHash(batchData);
+  }
+  
+  /**
+   * Creates a deterministic hash from any data object.
+   * This function must match exactly the hashing logic in the web app.
+   * @param {Object} data - The data to hash
+   * @return {String} SHA-256 hash as hex string
+   */
+  function createDeterministicHash(data) {
     // Convert to string in a deterministic way (stable ordering of keys)
-    const jsonString = JSON.stringify(responseData, function(key, value) {
+    const jsonString = JSON.stringify(data, function(key, value) {
       // Handle arrays to ensure consistent ordering
       if (Array.isArray(value)) {
         // Sort simple arrays by their string representation
-        if (value.every(item => typeof item !== 'object')) {
+        if (value.every(item => typeof item !== 'object' || item === null)) {
           return [...value].sort();
         }
         
-        // For arrays of objects, sort by stringifying their contents
-        return value.map(item => JSON.stringify(item)).sort().map(item => {
-          try {
-            return JSON.parse(item);
-          } catch (e) {
-            return item;
-          }
-        });
+        // For arrays of objects, sort by stringifying their contents first
+        return value
+          .map(item => JSON.stringify(item, arguments.callee)) // Use the same replacer function recursively
+          .sort()
+          .map(item => {
+            try {
+              return JSON.parse(item);
+            } catch (e) {
+              console.log("Parse error in hashing:", e);
+              return item;
+            }
+          });
       }
       
       // Handle objects to ensure consistent key ordering
@@ -377,6 +619,8 @@ var Hashing = (function() {
       return value;
     });
     
+    console.log("Hashing JSON string:", jsonString.substring(0, 200) + "...");
+    
     // Use Apps Script's Utilities to compute SHA-256 hash
     const bytes = Utilities.computeDigest(
       Utilities.DigestAlgorithm.SHA_256, 
@@ -384,12 +628,17 @@ var Hashing = (function() {
     );
     
     // Convert bytes to hex string
-    return bytes.map(function(byte) {
+    const hexHash = bytes.map(function(byte) {
       return ('0' + (byte & 0xFF).toString(16)).slice(-2);
     }).join('');
+    
+    console.log("Generated hash:", hexHash);
+    return hexHash;
   }
   
   return {
-    hashResponseData: hashResponseData
+    hashResponseData: hashResponseData,
+    hashBatchData: hashBatchData,
+    createDeterministicHash: createDeterministicHash
   };
 })();
