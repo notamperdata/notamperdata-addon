@@ -305,12 +305,12 @@ function isBatchProcessingEnabled() {
 
 /**
  * Standardizes form response data to enable CSV export verification.
- * Removes dynamic fields and normalizes structure for consistent hashing.
+ * This method ensures that form data and CSV exports produce identical hashes.
  * @param {Object} formData - The form response data
  * @return {Object} Standardized data structure
  */
-function standardizeFormDataForCsvCompatibility(formData) {
-  console.log("Standardizing form data for CSV compatibility");
+function standardizeDataForCsvCompatibility(formData) {
+  console.log("Standardizing data for CSV compatibility");
   
   let standardized;
   
@@ -322,7 +322,7 @@ function standardizeFormDataForCsvCompatibility(formData) {
         return {
           // Normalize response ID to be predictable
           responseId: "response-" + index,
-          // Remove timestamp entirely - not needed for CSV compatibility
+          // Remove timestamp entirely for consistency
           // Standardize items
           items: (response.items || [])
             .slice() // Create copy
@@ -332,7 +332,7 @@ function standardizeFormDataForCsvCompatibility(formData) {
             })
             .map(function(item) {
               return {
-                // Remove dynamic itemId and type
+                // Remove dynamic fields (itemId, type)
                 title: item.title || "",
                 response: item.response !== null && item.response !== undefined ? String(item.response) : ""
               };
@@ -345,7 +345,6 @@ function standardizeFormDataForCsvCompatibility(formData) {
   else if (formData.items && Array.isArray(formData.items)) {
     standardized = {
       responseId: "response-0",
-      // Remove timestamp entirely
       items: formData.items
         .slice()
         .sort(function(a, b) {
@@ -407,10 +406,10 @@ function processBatchedResponses() {
     };
     
     // Apply standardization for CSV compatibility
-    const standardizedBatch = standardizeFormDataForCsvCompatibility(batchStructure);
+    const standardizedBatch = standardizeDataForCsvCompatibility(batchStructure);
     
     // Create batch hash from standardized data
-    const batchHash = Hashing.hashBatchData(standardizedBatch);
+    const batchHash = Hashing.hashStandardizedData(standardizedBatch);
     
     // Prepare metadata for the batch
     const metadata = {
@@ -587,9 +586,6 @@ var FormHandler = (function() {
         };
         
         result.items.push(response);
-        
-        // Log brief info about each item (optional, for debugging)
-        console.log(`Item ${index + 1}: ${itemType} - "${item.getTitle().substring(0, 20)}..."`);
       });
       
       console.log(`Successfully processed response data`);
@@ -611,20 +607,33 @@ var FormHandler = (function() {
 var Hashing = (function() {
   /**
    * Creates a deterministic hash from response data.
-   * @param {Object} responseData - The standardized response data
-   * @return {String} SHA-256 hash of the response data
+   * First standardizes the data, then hashes it.
+   * @param {Object} responseData - The response data
+   * @return {String} SHA-256 hash of the standardized data
    */
   function hashResponseData(responseData) {
-    return createDeterministicHash(responseData);
+    const standardized = standardizeDataForCsvCompatibility(responseData);
+    return createDeterministicHash(standardized);
   }
   
   /**
    * Creates a deterministic hash from batch data.
+   * First standardizes the data, then hashes it.
    * @param {Object} batchData - The batch data containing multiple responses
-   * @return {String} SHA-256 hash of the batch data
+   * @return {String} SHA-256 hash of the standardized data
    */
   function hashBatchData(batchData) {
-    return createDeterministicHash(batchData);
+    const standardized = standardizeDataForCsvCompatibility(batchData);
+    return createDeterministicHash(standardized);
+  }
+  
+  /**
+   * Creates a deterministic hash from already standardized data.
+   * @param {Object} standardizedData - The standardized data
+   * @return {String} SHA-256 hash of the data
+   */
+  function hashStandardizedData(standardizedData) {
+    return createDeterministicHash(standardizedData);
   }
   
   /**
@@ -668,8 +677,6 @@ var Hashing = (function() {
       return value;
     });
     
-    console.log("Hashing JSON string:", jsonString.substring(0, 200) + "...");
-    
     // Use Apps Script's Utilities to compute SHA-256 hash
     const bytes = Utilities.computeDigest(
       Utilities.DigestAlgorithm.SHA_256, 
@@ -681,13 +688,14 @@ var Hashing = (function() {
       return ('0' + (byte & 0xFF).toString(16)).slice(-2);
     }).join('');
     
-    console.log("Generated hash:", hexHash);
+    console.log("Hash generated successfully");
     return hexHash;
   }
   
   return {
     hashResponseData: hashResponseData,
     hashBatchData: hashBatchData,
+    hashStandardizedData: hashStandardizedData,
     createDeterministicHash: createDeterministicHash
   };
 })();
