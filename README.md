@@ -1,8 +1,8 @@
-# Adaverc Google Forms Add-on
+# notamperdata Google Forms Add-on
 
 ## Overview
 
-Adaverc provides blockchain-based verification for Google Forms responses by generating cryptographic hashes of form submissions and storing them for future verification. This ensures data integrity without compromising privacy - only hashes are stored, never the actual form data.
+notamperdata provides blockchain-based verification for Google Forms responses by generating cryptographic hashes of form submissions and storing them for future verification. This ensures data integrity without compromising privacy - only hashes are stored, never the actual form data.
 
 ## Features
 
@@ -16,7 +16,7 @@ Adaverc provides blockchain-based verification for Google Forms responses by gen
 ### For Users
 1. Open your Google Form
 2. Click Add-ons → Get add-ons
-3. Search for "Adaverc"
+3. Search for "notamperdata"
 4. Click Install and follow the authorization prompts
 
 ### For Developers
@@ -41,7 +41,7 @@ clasp push
 ## Usage
 
 1. Open your Google Form
-2. Click Add-ons → Adaverc → Open
+2. Click Add-ons → notamperdata → Open
 3. Click "Enable Automatic Verification"
 4. Submit a test response to verify the system is working
 
@@ -81,17 +81,17 @@ The add-on communicates with the following endpoints:
 Before submitting to Google Workspace Marketplace:
 
 - [ ] Update API endpoint in `Code.js` to production URL
-- [ ] Ensure privacy policy is accessible at `https://adaverc.vercel.app/privacy`
-- [ ] Ensure terms of service is accessible at `https://adaverc.vercel.app/terms`
+- [ ] Ensure privacy policy is accessible at `https://notamperdata.vercel.app/privacy`
+- [ ] Ensure terms of service is accessible at `https://notamperdata.vercel.app/terms`
 - [ ] Test all functionality with production API
 - [ ] Create app listing assets (screenshots, descriptions)
 - [ ] Complete OAuth consent screen configuration
 
 ## Support
 
-- Documentation: https://adaverc.vercel.app/docs
-- Support: https://adaverc.vercel.app/support
-- Issues: https://github.com/adaverc/adaverc-addon/issues
+- Documentation: https://notamperdata.vercel.app/docs
+- Support: https://notamperdata.vercel.app/support
+- Issues: https://github.com/notamperdata/notamperdata-addon/issues
 
 ## License
 

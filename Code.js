@@ -1,16 +1,16 @@
 // API endpoint - Update this to match your deployment
 // For testing: "http://localhost:3000/api"
-// For production: "https://adaverc.vercel.app/api"
-const API_ENDPOINT = "https://adaverc.vercel.app/api";
+// For production: "https://notamperdata.vercel.app/api"
+const API_ENDPOINT = "https://notamperdata.vercel.app/api";
 
 // Add-on metadata
-const ADDON_NAME = "Adaverc";
+const ADDON_NAME = "notamperdata";
 const ADDON_VERSION = "1.1.0";
 
 // Configuration for batch processing
-const BATCH_CONFIG_KEY = "ADAVERC_BATCH_CONFIG";
-const API_KEY_CONFIG_KEY = "ADAVERC_API_KEY";
-const LAST_PROCESSED_KEY = "ADAVERC_LAST_PROCESSED";
+const BATCH_CONFIG_KEY = "notamperdata_BATCH_CONFIG";
+const API_KEY_CONFIG_KEY = "notamperdata_API_KEY";
+const LAST_PROCESSED_KEY = "notamperdata_LAST_PROCESSED";
 
 /**
  * Runs when the add-on is installed.
@@ -20,8 +20,8 @@ function onInstall(e) {
   onOpen(e);
   // Show welcome message on first install
   FormApp.getUi().alert(
-    'Welcome to Adaverc!',
-    'Thank you for installing Adaverc. Click on Add-ons → Adaverc → Open to get started.',
+    'Welcome to notamperdata!',
+    'Thank you for installing notamperdata. Click on Add-ons → notamperdata → Open to get started.',
     FormApp.getUi().ButtonSet.OK
   );
 }
@@ -57,7 +57,7 @@ function showAbout() {
       <h3 style="color: #0033AD;">About ${ADDON_NAME}</h3>
       <p style="margin-bottom: 15px;">
         Version ${ADDON_VERSION}<br><br>
-        Adaverc provides blockchain-based verification for Google Forms responses, 
+        notamperdata provides blockchain-based verification for Google Forms responses, 
         ensuring data integrity through cryptographic hashing with cost-efficient batch processing.
       </p>
       <p style="margin-bottom: 15px;">
@@ -69,9 +69,9 @@ function showAbout() {
         • Hashes can be verified at any time
       </p>
       <p style="margin-bottom: 20px;">
-        <a href="https://adaverc.vercel.app/privacy" target="_blank">Privacy Policy</a> | 
-        <a href="https://adaverc.vercel.app/terms" target="_blank">Terms of Service</a> | 
-        <a href="https://adaverc.vercel.app/support" target="_blank">Support</a>
+        <a href="https://notamperdata.vercel.app/privacy" target="_blank">Privacy Policy</a> | 
+        <a href="https://notamperdata.vercel.app/terms" target="_blank">Terms of Service</a> | 
+        <a href="https://notamperdata.vercel.app/support" target="_blank">Support</a>
       </p>
       <div style="text-align: center; margin-top: 20px;">
         <button onclick="google.script.host.close()">Close</button>
