@@ -1,10 +1,10 @@
 /**
- * Handles API communication with the notamperdata backend.
+ * Handles API communication with the NoTamperData backend.
  * Includes API key authentication for enhanced security.
  */
 var ApiClient = (function() {
   /**
-   * Sends hash and metadata to the notamperdata API.
+   * Sends hash and metadata to the NoTamperData API.
    * @param {String} hash - The generated hash
    * @param {Object} metadata - Metadata about the response
    * @return {Object} API response or error object
@@ -72,12 +72,12 @@ var ApiClient = (function() {
       } else if (responseCode === 0) {
         // Network error
         return {
-          error: 'Unable to connect to notamperdata servers. Please check your internet connection.'
+          error: 'Unable to connect to NoTamperData servers. Please check your internet connection.'
         };
       } else if (responseCode >= 500) {
         // Server error
         return {
-          error: 'notamperdata server error. Please try again later.'
+          error: 'NoTamperData server error. Please try again later.'
         };
       } else if (responseCode >= 400) {
         // Client error
@@ -102,7 +102,7 @@ var ApiClient = (function() {
       // Handle specific error types
       if (error.toString().includes('DNS error')) {
         return {
-          error: 'Unable to reach notamperdata servers. Please check your internet connection.'
+          error: 'Unable to reach NoTamperData servers. Please check your internet connection.'
         };
       } else if (error.toString().includes('timeout')) {
         return {

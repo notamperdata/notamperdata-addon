@@ -1,8 +1,8 @@
-# notamperdata Google Forms Add-on
+# NoTamperData Google Forms Add-on
 
 ## Overview
 
-notamperdata provides blockchain-based verification for Google Forms responses by generating cryptographic hashes of form submissions and storing them for future verification. This ensures data integrity without compromising privacy - only hashes are stored, never the actual form data.
+NoTamperData provides blockchain-based verification for Google Forms responses by generating cryptographic hashes of form submissions and storing them for future verification. This ensures data integrity without compromising privacy - only hashes are stored, never the actual form data.
 
 ## Features
 
@@ -16,7 +16,7 @@ notamperdata provides blockchain-based verification for Google Forms responses b
 ### For Users
 1. Open your Google Form
 2. Click Add-ons → Get add-ons
-3. Search for "notamperdata"
+3. Search for "NoTamperData"
 4. Click Install and follow the authorization prompts
 
 ### For Developers
@@ -41,7 +41,7 @@ clasp push
 ## Usage
 
 1. Open your Google Form
-2. Click Add-ons → notamperdata → Open
+2. Click Add-ons → NoTamperData → Open
 3. Click "Enable Automatic Verification"
 4. Submit a test response to verify the system is working
 
@@ -81,17 +81,17 @@ The add-on communicates with the following endpoints:
 Before submitting to Google Workspace Marketplace:
 
 - [ ] Update API endpoint in `Code.js` to production URL
-- [ ] Ensure privacy policy is accessible at `https://notamperdata.vercel.app/privacy`
-- [ ] Ensure terms of service is accessible at `https://notamperdata.vercel.app/terms`
+- [ ] Ensure privacy policy is accessible at `https://NoTamperData.vercel.app/privacy`
+- [ ] Ensure terms of service is accessible at `https://NoTamperData.vercel.app/terms`
 - [ ] Test all functionality with production API
 - [ ] Create app listing assets (screenshots, descriptions)
 - [ ] Complete OAuth consent screen configuration
 
 ## Support
 
-- Documentation: https://notamperdata.vercel.app/docs
-- Support: https://notamperdata.vercel.app/support
-- Issues: https://github.com/notamperdata/notamperdata-addon/issues
+- Documentation: https://NoTamperData.vercel.app/docs
+- Support: https://NoTamperData.vercel.app/support
+- Issues: https://github.com/NoTamperData/NoTamperData-addon/issues
 
 ## License
 

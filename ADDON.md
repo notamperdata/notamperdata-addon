@@ -1,8 +1,8 @@
-# notamperdata Google Forms Add-on
+# NoTamperData Google Forms Add-on
 
 ## Overview
 
-The notamperdata Google Forms Add-on generates cryptographic hashes of form responses and stores them on the Cardano blockchain for verification. Only hash values (not actual form data) leave Google's secure environment.
+The NoTamperData Google Forms Add-on generates cryptographic hashes of form responses and stores them on the Cardano blockchain for verification. Only hash values (not actual form data) leave Google's secure environment.
 
 ## Features
 
@@ -17,7 +17,7 @@ The notamperdata Google Forms Add-on generates cryptographic hashes of form resp
 ### From Google Workspace Marketplace
 1. Open your Google Form
 2. Click **Add-ons** → **Get add-ons**
-3. Search for "notamperdata" and install
+3. Search for "NoTamperData" and install
 
 ### Test Mode Installation
 1. Create a new Google Form
@@ -25,13 +25,13 @@ The notamperdata Google Forms Add-on generates cryptographic hashes of form resp
 3. Copy the add-on code files into the Apps Script editor
 4. Save the project
 5. Return to your Google Form
-6. Click **Add-ons** → **notamperdata** → **Install**
+6. Click **Add-ons** → **NoTamperData** → **Install**
 7. Open the add-on to run the script
 
 ## Usage
 
 1. **Open the Add-on**
-   - Click **Add-ons** → **notamperdata** → **Open**
+   - Click **Add-ons** → **NoTamperData** → **Open**
 
 2. **Process Responses**
    - Click the "Process Responses" button to hash existing responses
@@ -39,7 +39,7 @@ The notamperdata Google Forms Add-on generates cryptographic hashes of form resp
 
 3. **Verify Responses**
    - Export your form responses as CSV from Google Forms
-   - Upload the CSV file to the notamperdata platform for verification
+   - Upload the CSV file to the NoTamperData platform for verification
 
 ## How It Works
 
@@ -47,7 +47,7 @@ The notamperdata Google Forms Add-on generates cryptographic hashes of form resp
 2. **Manual Processing**: Form owner clicks "Process Responses" 
 3. **Hash Generation**: SHA-256 hash created from response data
 4. **Blockchain Storage**: Hash stored on Cardano blockchain via API
-5. **Verification**: Export CSV from Google Forms and upload to notamperdata platform for verification
+5. **Verification**: Export CSV from Google Forms and upload to NoTamperData platform for verification
 
 ## File Structure
 
@@ -91,5 +91,5 @@ POST /api/storehash
 
 ## Support
 
-- **Source Code**: https://github.com/notamperdata/notamperdata-addon
-- **Issues**: https://github.com/notamperdata/notamperdata-addon/issues
+- **Source Code**: https://github.com/NoTamperData/NoTamperData-addon
+- **Issues**: https://github.com/NoTamperData/NoTamperData-addon/issues
