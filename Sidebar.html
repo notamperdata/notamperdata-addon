@@ -244,11 +244,11 @@
       <div class="section">
         <div class="section-title">API Configuration</div>
         <div class="config-row">
-          <label>API Key:</label>
-          <input type="password" id="api-key-input" placeholder="Enter your API key" style="flex: 1;">
+          <label>access token:</label>
+          <input type="password" id="access-token-input" placeholder="Enter your access token" style="flex: 1;">
         </div>
         <div style="margin-top: 8px;">
-          <button class="btn small-btn" id="saveApiKeyBtn">Save API Key</button>
+          <button class="btn small-btn" id="saveaccessTokenBtn">Save access token</button>
           <button class="btn secondary-btn small-btn" id="testApiBtn">Test Connection</button>
         </div>
         <div id="api-test-result" class="message info hidden"></div>
@@ -444,7 +444,7 @@
         google.script.run
           .withSuccessHandler(function(result) {
             if (result.success) {
-              apiTestResult.innerHTML = '<strong>✓ Connection Successful!</strong><br>' + (result.message || 'API key is valid and working.');
+              apiTestResult.innerHTML = '<strong>✓ Connection Successful!</strong><br>' + (result.message || 'access token is valid and working.');
               apiTestResult.className = 'message success';
             } else {
               apiTestResult.innerHTML = '<strong>✗ Connection Failed</strong><br>' + (result.error || 'Unable to connect to API');
@@ -462,12 +462,12 @@
           .testApiConnection();
       });
       
-      // Save API Key
-      document.getElementById('saveApiKeyBtn').addEventListener('click', function() {
-        const apiKey = document.getElementById('api-key-input').value.trim();
+      // Save access token
+      document.getElementById('saveaccessTokenBtn').addEventListener('click', function() {
+        const accessToken = document.getElementById('access-token-input').value.trim();
         
-        if (!apiKey) {
-          showMessage('Please enter a valid API key', 'error');
+        if (!accessToken) {
+          showMessage('Please enter a valid access token', 'error');
           return;
         }
         
@@ -477,20 +477,20 @@
         google.script.run
           .withSuccessHandler(function(result) {
             if (result.success) {
-              showMessage('API key saved successfully!', 'success');
-              document.getElementById('api-key-input').value = '';
+              showMessage('access token saved successfully!', 'success');
+              document.getElementById('access-token-input').value = '';
             } else {
-              showMessage(result.error || 'Failed to save API key', 'error');
+              showMessage(result.error || 'Failed to save access token', 'error');
             }
-            document.getElementById('saveApiKeyBtn').disabled = false;
-            document.getElementById('saveApiKeyBtn').innerHTML = 'Save API Key';
+            document.getElementById('saveaccessTokenBtn').disabled = false;
+            document.getElementById('saveaccessTokenBtn').innerHTML = 'Save access token';
           })
           .withFailureHandler(function(error) {
             showMessage('Error: ' + error, 'error');
-            document.getElementById('saveApiKeyBtn').disabled = false;
-            document.getElementById('saveApiKeyBtn').innerHTML = 'Save API Key';
+            document.getElementById('saveaccessTokenBtn').disabled = false;
+            document.getElementById('saveaccessTokenBtn').innerHTML = 'Save access token';
           })
-          .saveApiKey(apiKey);
+          .saveaccessToken(accessToken);
       });
       
       // Save configuration

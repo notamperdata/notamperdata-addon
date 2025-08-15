@@ -1,6 +1,6 @@
 /**
  * Handles API communication with the NoTamperData backend.
- * Includes API key authentication for enhanced security.
+ * Includes access token authentication for enhanced security.
  */
 var ApiClient = (function() {
   /**
@@ -10,13 +10,13 @@ var ApiClient = (function() {
    * @return {Object} API response or error object
    */
   function sendHashToApi(hash, metadata) {
-    // Get API key from stored configuration
-    const apiKey = getApiKey();
+    // Get access token from stored configuration
+    const accessToken = getaccessToken();
     
-    if (!apiKey) {
-      console.error('No API key configured');
+    if (!accessToken) {
+      console.error('No access token configured');
       return {
-        error: 'API key is required. Please configure your API key in the add-on settings.'
+        error: 'access token is required. Please configure your access token in the add-on settings.'
       };
     }
     
@@ -29,10 +29,10 @@ var ApiClient = (function() {
       'Content-Type': 'application/json'
     };
     
-    // Add API key to headers
-    headers['Authorization'] = `Bearer ${apiKey}`;
+    // Add access token to headers
+    headers['Authorization'] = `Bearer ${accessToken}`;
     // Alternative header format if needed
-    headers['X-API-Key'] = apiKey;
+    headers['X-access-token'] = accessToken;
     
     const options = {
       'method': 'post',
@@ -44,7 +44,7 @@ var ApiClient = (function() {
     
     try {
       console.log(`Sending hash to API: ${API_ENDPOINT}/storehash`);
-      console.log(`Using API key: ${apiKey.substring(0, 8)}...`); // Log first 8 chars for debugging
+      console.log(`Using access token: ${accessToken.substring(0, 8)}...`); // Log first 8 chars for debugging
       
       const response = UrlFetchApp.fetch(API_ENDPOINT + "/storehash", options);
       const responseCode = response.getResponseCode();
@@ -60,14 +60,14 @@ var ApiClient = (function() {
           return { success: true }; // Assume success if we got 2xx
         }
       } else if (responseCode === 401) {
-        // Unauthorized - likely invalid API key
+        // Unauthorized - likely invalid access token
         return {
-          error: 'Invalid API key. Please check your API key configuration.'
+          error: 'Invalid access token. Please check your access token configuration.'
         };
       } else if (responseCode === 403) {
-        // Forbidden - API key might be valid but lacks permissions
+        // Forbidden - access token might be valid but lacks permissions
         return {
-          error: 'API key does not have permission to perform this action.'
+          error: 'access token does not have permission to perform this action.'
         };
       } else if (responseCode === 0) {
         // Network error
@@ -121,18 +121,18 @@ var ApiClient = (function() {
    * @return {Object} Test result with success/error status
    */
   function testApiConnection() {
-    const apiKey = getApiKey();
+    const accessToken = getaccessToken();
     
-    if (!apiKey) {
+    if (!accessToken) {
       return {
         success: false,
-        error: 'No API key configured'
+        error: 'No access token configured'
       };
     }
     
     const headers = {
-      'Authorization': `Bearer ${apiKey}`,
-      'X-API-Key': apiKey
+      'Authorization': `Bearer ${accessToken}`,
+      'X-access-token': accessToken
     };
     
     try {
@@ -153,12 +153,12 @@ var ApiClient = (function() {
       } else if (responseCode === 401) {
         return {
           success: false,
-          error: 'Invalid API key'
+          error: 'Invalid access token'
         };
       } else if (responseCode === 403) {
         return {
           success: false,
-          error: 'API key lacks permissions'
+          error: 'access token lacks permissions'
         };
       } else {
         return {

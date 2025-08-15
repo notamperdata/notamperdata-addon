@@ -9,7 +9,7 @@ const ADDON_VERSION = "1.1.0";
 
 // Configuration for batch processing
 const BATCH_CONFIG_KEY = "NoTamperData_BATCH_CONFIG";
-const API_KEY_CONFIG_KEY = "NoTamperData_API_KEY";
+const Access_Token_CONFIG_KEY = "NoTamperData_Access_Token";
 const LAST_PROCESSED_KEY = "NoTamperData_LAST_PROCESSED";
 
 /**
@@ -113,34 +113,34 @@ function getFormInfo() {
 }
 
 /**
- * Save API key.
- * @param {string} apiKey - The API key to save
+ * Save access token.
+ * @param {string} accessToken - The access token to save
  * @return {Object} Result object
  */
-function saveApiKey(apiKey) {
+function saveaccessToken(accessToken) {
   try {
-    if (!apiKey || apiKey.trim() === '') {
-      return { success: false, error: 'API key cannot be empty' };
+    if (!accessToken || accessToken.trim() === '') {
+      return { success: false, error: 'access token cannot be empty' };
     }
     
-    PropertiesService.getDocumentProperties().setProperty(API_KEY_CONFIG_KEY, apiKey.trim());
-    console.log('API key saved successfully');
+    PropertiesService.getDocumentProperties().setProperty(Access_Token_CONFIG_KEY, accessToken.trim());
+    console.log('access token saved successfully');
     return { success: true };
   } catch (error) {
-    console.error('Error saving API key:', error);
+    console.error('Error saving access token:', error);
     return { success: false, error: error.toString() };
   }
 }
 
 /**
- * Get saved API key.
- * @return {string|null} The saved API key or null
+ * Get saved access token.
+ * @return {string|null} The saved access token or null
  */
-function getApiKey() {
+function getaccessToken() {
   try {
-    return PropertiesService.getDocumentProperties().getProperty(API_KEY_CONFIG_KEY);
+    return PropertiesService.getDocumentProperties().getProperty(Access_Token_CONFIG_KEY);
   } catch (error) {
-    console.error('Error getting API key:', error);
+    console.error('Error getting access token:', error);
     return null;
   }
 }
@@ -520,7 +520,7 @@ function getProcessingStatus() {
       readyToProcess: allResponses.length, // All responses are always ready to process
       nextScheduled: nextScheduled ? nextScheduled.toISOString() : null,
       config: config,
-      hasApiKey: !!getApiKey()
+      hasaccessToken: !!getaccessToken()
     };
   } catch (error) {
     console.error('Error getting processing status:', error);
