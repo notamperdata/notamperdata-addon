@@ -16,23 +16,20 @@ var ApiClient = (function() {
     if (!accessToken) {
       console.error('No access token configured');
       return {
-        error: 'access token is required. Please configure your access token in the add-on settings.'
+        error: 'Access token is required. Please configure your access token in the add-on settings.'
       };
     }
     
     const payload = {
       hash: hash,
       metadata: metadata
+      // No access token in request body - using header only
     };
     
     const headers = {
-      'Content-Type': 'application/json'
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${accessToken}`  // Industry standard Bearer token
     };
-    
-    // Add access token to headers
-    headers['Authorization'] = `Bearer ${accessToken}`;
-    // Alternative header format if needed
-    headers['X-access-token'] = accessToken;
     
     const options = {
       'method': 'post',
@@ -64,10 +61,15 @@ var ApiClient = (function() {
         return {
           error: 'Invalid access token. Please check your access token configuration.'
         };
+      } else if (responseCode === 402) {
+        // Payment required - insufficient tokens
+        return {
+          error: 'Insufficient tokens. Please purchase more tokens to continue.'
+        };
       } else if (responseCode === 403) {
         // Forbidden - access token might be valid but lacks permissions
         return {
-          error: 'access token does not have permission to perform this action.'
+          error: 'Access token does not have permission to perform this action.'
         };
       } else if (responseCode === 0) {
         // Network error
@@ -79,34 +81,29 @@ var ApiClient = (function() {
         return {
           error: 'NoTamperData server error. Please try again later.'
         };
-      } else if (responseCode >= 400) {
-        // Client error
+      } else {
+        // Parse error response if available
         try {
-          const errorData = JSON.parse(contentText);
+          const errorResponse = JSON.parse(contentText);
           return {
-            error: errorData.error || `Request failed (${responseCode})`
+            error: errorResponse.error || `Request failed with status ${responseCode}`
           };
         } catch (e) {
           return {
             error: `Request failed with status ${responseCode}`
           };
         }
-      } else {
-        return {
-          error: `Unexpected response (${responseCode})`
-        };
       }
     } catch (error) {
-      console.error(`API request error: ${error.toString()}`);
+      console.error('API request failed:', error);
       
-      // Handle specific error types
-      if (error.toString().includes('DNS error')) {
-        return {
-          error: 'Unable to reach NoTamperData servers. Please check your internet connection.'
-        };
-      } else if (error.toString().includes('timeout')) {
+      if (error.toString().includes('timeout')) {
         return {
           error: 'Request timed out. Please try again.'
+        };
+      } else if (error.toString().includes('network')) {
+        return {
+          error: 'Unable to connect to NoTamperData servers. Please check your internet connection.'
         };
       } else {
         return {
@@ -131,8 +128,7 @@ var ApiClient = (function() {
     }
     
     const headers = {
-      'Authorization': `Bearer ${accessToken}`,
-      'X-access-token': accessToken
+      'Authorization': `Bearer ${accessToken}`  // Standard Bearer authentication
     };
     
     try {
@@ -146,10 +142,27 @@ var ApiClient = (function() {
       const responseCode = response.getResponseCode();
       
       if (responseCode === 200) {
-        return {
-          success: true,
-          message: 'API connection successful'
-        };
+        try {
+          const responseData = JSON.parse(response.getContentText());
+          
+          // Check if authentication was validated
+          if (responseData.authentication && responseData.authentication.validated) {
+            return {
+              success: true,
+              message: 'API connection and access token validation successful'
+            };
+          } else {
+            return {
+              success: true,
+              message: 'API connection successful (access token not validated by server)'
+            };
+          }
+        } catch (e) {
+          return {
+            success: true,
+            message: 'API connection successful'
+          };
+        }
       } else if (responseCode === 401) {
         return {
           success: false,
@@ -158,7 +171,7 @@ var ApiClient = (function() {
       } else if (responseCode === 403) {
         return {
           success: false,
-          error: 'access token lacks permissions'
+          error: 'Access token lacks permissions'
         };
       } else {
         return {
@@ -168,6 +181,80 @@ var ApiClient = (function() {
       }
     } catch (error) {
       console.error('API connection test failed:', error);
+      return {
+        success: false,
+        error: 'Unable to connect to API servers'
+      };
+    }
+  }
+  
+  /**
+   * Check access token status and remaining tokens.
+   * @return {Object} Access token status result
+   */
+  function checkAccessTokenStatus() {
+    const accessToken = getaccessToken();
+    
+    if (!accessToken) {
+      return {
+        success: false,
+        error: 'No access token configured'
+      };
+    }
+    
+    const headers = {
+      'Authorization': `Bearer ${accessToken}`  // Standard Bearer authentication
+    };
+    
+    try {
+      const response = UrlFetchApp.fetch(API_ENDPOINT + "/access-token-status", {
+        'method': 'get',
+        'headers': headers,
+        'muteHttpExceptions': true,
+        'timeout': 10
+      });
+      
+      const responseCode = response.getResponseCode();
+      const contentText = response.getContentText();
+      
+      if (responseCode === 200) {
+        try {
+          const statusData = JSON.parse(contentText);
+          if (statusData.success && statusData.data) {
+            return {
+              success: true,
+              data: statusData.data
+            };
+          } else {
+            return {
+              success: false,
+              error: statusData.error || 'Failed to get access token status'
+            };
+          }
+        } catch (e) {
+          return {
+            success: false,
+            error: 'Failed to parse access token status response'
+          };
+        }
+      } else if (responseCode === 401) {
+        return {
+          success: false,
+          error: 'Invalid access token'
+        };
+      } else if (responseCode === 404) {
+        return {
+          success: false,
+          error: 'Access token not found'
+        };
+      } else {
+        return {
+          success: false,
+          error: `Access token status check failed with status ${responseCode}`
+        };
+      }
+    } catch (error) {
+      console.error('Access token status check failed:', error);
       return {
         success: false,
         error: 'Unable to connect to API servers'
@@ -187,6 +274,7 @@ var ApiClient = (function() {
   return {
     sendHashToApi: sendHashToApi,
     testApiConnection: testApiConnection,
+    checkAccessTokenStatus: checkAccessTokenStatus,
     checkApiHealth: checkApiHealth
   };
 })();
