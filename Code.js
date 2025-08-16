@@ -146,6 +146,21 @@ function getaccessToken() {
 }
 
 /**
+ * Remove saved access token.
+ * @return {Object} Result object
+ */
+function removeaccessToken() {
+  try {
+    PropertiesService.getDocumentProperties().deleteProperty(Access_Token_CONFIG_KEY);
+    console.log('access token removed successfully');
+    return { success: true };
+  } catch (error) {
+    console.error('Error removing access token:', error);
+    return { success: false, error: error.toString() };
+  }
+}
+
+/**
  * Get current batch configuration.
  * @return {Object} Batch configuration
  */
@@ -368,6 +383,33 @@ function standardizeDataForCsvCompatibility(formData) {
 }
 
 /**
+ * Process form responses manually (called by UI button).
+ * @return {Object} Processing result
+ */
+function processFormResponses() {
+  try {
+    console.log("Manual processing of form responses initiated");
+    
+    const result = processBatchedResponses();
+    
+    if (result.success) {
+      // Update last processed timestamp for manual processing
+      setLastProcessedTimestamp(new Date().toISOString());
+    }
+    
+    return result;
+  } catch (error) {
+    console.error('Error in manual form processing:', error);
+    return {
+      success: false,
+      error: error.toString()
+    };
+  }
+}
+
+
+
+/**
  * Main function to process all responses in batch.
  * Called by time-based triggers or manually.
  * Always processes ALL responses, not just new ones.
@@ -485,6 +527,7 @@ function getProcessingStatus() {
     const form = FormApp.getActiveForm();
     const allResponses = form.getResponses();
     const config = getBatchConfig();
+    const lastProcessed = getLastProcessedTimestamp();
     
     let nextScheduled = null;
     
@@ -519,6 +562,7 @@ function getProcessingStatus() {
       totalResponses: allResponses.length,
       readyToProcess: allResponses.length, // All responses are always ready to process
       nextScheduled: nextScheduled ? nextScheduled.toISOString() : null,
+      lastProcessed: lastProcessed,
       config: config,
       hasaccessToken: !!getaccessToken()
     };

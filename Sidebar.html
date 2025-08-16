@@ -2,187 +2,169 @@
 <html>
   <head>
     <base target="_top">
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NoTamperData</title>
     <style>
       body {
-        font-family: Arial, sans-serif;
-        padding: 16px;
-        color: #333;
+        font-family: 'Google Sans', Arial, sans-serif;
         margin: 0;
-        line-height: 1.5;
+        padding: 16px;
+        background-color: #fafafa;
+        font-size: 14px;
+        line-height: 1.4;
       }
       .container {
-        max-width: 100%;
+        max-width: 400px;
         margin: 0 auto;
       }
       .header {
         text-align: center;
-        margin-bottom: 20px;
-        padding: 12px 0;
-        background-color: #0033AD;
+        margin-bottom: 24px;
+        padding: 16px;
+        background: linear-gradient(135deg, #1a73e8 0%, #34a853 100%);
         color: white;
-        border-radius: 4px;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
       }
       .header h1 {
-        font-size: 20px;
-        margin: 0;
+        margin: 0 0 4px 0;
+        font-size: 24px;
+        font-weight: 500;
       }
       .header small {
         opacity: 0.9;
+        font-size: 13px;
       }
       .section {
-        margin-bottom: 20px;
-        padding-bottom: 12px;
-        border-bottom: 1px solid #e0e0e0;
-      }
-      .section:last-child {
-        border-bottom: none;
+        background: white;
+        border: 1px solid #dadce0;
+        border-radius: 8px;
+        margin-bottom: 16px;
+        overflow: hidden;
+        box-shadow: 0 1px 2px rgba(0,0,0,0.05);
       }
       .section-title {
-        font-size: 14px;
+        background-color: #f8f9fa;
+        padding: 12px 16px;
         font-weight: 500;
-        margin-bottom: 8px;
-        color: #0033AD;
-      }
-      .btn {
-        background-color: #0033AD;
-        color: white;
-        border: none;
-        padding: 8px 16px;
-        font-size: 14px;
-        cursor: pointer;
-        border-radius: 4px;
-        font-weight: 500;
-        width: 100%;
-        margin-top: 8px;
-      }
-      .btn:hover {
-        background-color: #002A8C;
-      }
-      .btn:disabled {
-        background-color: #ccc;
-        cursor: not-allowed;
-      }
-      .secondary-btn {
-        background-color: #f1f3f4;
-        color: #333;
-        border: 1px solid #dadce0;
-      }
-      .secondary-btn:hover {
-        background-color: #e8e8e9;
-      }
-      .small-btn {
-        padding: 6px 12px;
-        font-size: 12px;
-        width: auto;
-        margin: 4px 2px;
-        display: inline-block;
-      }
-      .message {
-        padding: 8px 12px;
-        margin: 12px 0;
-        border-radius: 4px;
+        color: #3c4043;
+        border-bottom: 1px solid #dadce0;
         font-size: 14px;
       }
-      .success {
-        background-color: #e6f4ea;
-        color: #1e8e3e;
-        border: 1px solid #34A853;
-      }
-      .error {
-        background-color: #fce8e6;
-        color: #d33b2c;
-        border: 1px solid #EA4335;
-      }
-      .info {
-        background-color: #e8f0fe;
-        color: #1967d2;
-        border: 1px solid #4285F4;
-      }
-      .warning {
-        background-color: #fef7e0;
-        color: #b7a100;
-        border: 1px solid #fbbc04;
-      }
-      .hidden {
-        display: none;
-      }
-      .status-badge {
-        display: inline-block;
-        padding: 2px 8px;
-        border-radius: 12px;
-        font-size: 12px;
-        font-weight: 500;
-      }
-      .badge-enabled {
-        background-color: #e6f4ea;
-        color: #1e8e3e;
-      }
-      .badge-disabled {
-        background-color: #fce8e6;
-        color: #d33b2c;
-      }
-      .help-text {
-        font-size: 12px;
-        color: #5f6368;
-        margin-top: 4px;
+      .section-content {
+        padding: 16px;
       }
       .config-row {
         display: flex;
         align-items: center;
-        margin: 8px 0;
+        margin-bottom: 8px;
         gap: 8px;
       }
       .config-row label {
-        font-size: 12px;
+        min-width: 80px;
+        font-weight: 500;
         color: #5f6368;
-        min-width: 60px;
       }
-      .config-row select, .config-row input {
+      .config-row input, .config-row select {
         flex: 1;
-        padding: 4px 8px;
+        padding: 8px 12px;
         border: 1px solid #dadce0;
         border-radius: 4px;
-        font-size: 12px;
+        font-size: 14px;
       }
-      .stats-grid {
-        display: grid;
-        grid-template-columns: auto 1fr;
-        gap: 4px 8px;
-        font-size: 12px;
-        margin: 8px 0;
+      .config-row input:focus, .config-row select:focus {
+        outline: none;
+        border-color: #1a73e8;
+        box-shadow: 0 0 0 1px #1a73e8;
       }
-      .stats-label {
-        color: #5f6368;
+      .btn {
+        background-color: #1a73e8;
+        color: white;
+        border: none;
+        padding: 10px 16px;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 14px;
         font-weight: 500;
+        margin-right: 8px;
+        margin-bottom: 8px;
+        transition: background-color 0.2s;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
       }
-      .stats-value {
-        color: #333;
+      .btn:hover {
+        background-color: #1557b0;
       }
-      .footer {
-        text-align: center;
+      .btn:disabled {
+        background-color: #dadce0;
+        color: #9aa0a6;
+        cursor: not-allowed;
+      }
+      .btn.secondary-btn {
+        background-color: #f8f9fa;
+        color: #3c4043;
+        border: 1px solid #dadce0;
+      }
+      .btn.secondary-btn:hover {
+        background-color: #f1f3f4;
+      }
+      .btn.danger-btn {
+        background-color: #d93025;
+      }
+      .btn.danger-btn:hover {
+        background-color: #b52d20;
+      }
+      .btn.small-btn {
+        padding: 8px 12px;
+        font-size: 13px;
+      }
+      .message {
+        padding: 12px;
+        border-radius: 4px;
+        margin: 8px 0;
+        font-size: 13px;
+        line-height: 1.4;
+      }
+      .message.success {
+        background-color: #e8f5e8;
+        color: #137333;
+        border: 1px solid #ceead6;
+      }
+      .message.error {
+        background-color: #fce8e6;
+        color: #d93025;
+        border: 1px solid #f9dedc;
+      }
+      .message.info {
+        background-color: #e8f0fe;
+        color: #1967d2;
+        border: 1px solid #d2e3fc;
+      }
+      .message.warning {
+        background-color: #fef7e0;
+        color: #b06000;
+        border: 1px solid #feeaa7;
+      }
+      .hidden {
+        display: none !important;
+      }
+      .help-text {
         font-size: 12px;
         color: #5f6368;
-        margin-top: 24px;
-        padding-top: 12px;
-        border-top: 1px solid #e0e0e0;
-      }
-      .footer a {
-        color: #0033AD;
-        text-decoration: none;
-      }
-      .footer a:hover {
-        text-decoration: underline;
+        margin: 8px 0 0 0;
+        line-height: 1.3;
       }
       .loading {
         display: inline-block;
-        width: 14px;
-        height: 14px;
+        width: 12px;
+        height: 12px;
         border: 2px solid #f3f3f3;
-        border-top: 2px solid #0033AD;
+        border-top: 2px solid #1a73e8;
         border-radius: 50%;
         animation: spin 1s linear infinite;
-        margin-right: 8px;
-        vertical-align: middle;
+        margin-right: 6px;
       }
       @keyframes spin {
         0% { transform: rotate(0deg); }
@@ -216,6 +198,68 @@
       .collapsible.open .chevron {
         transform: rotate(180deg);
       }
+      
+      /* Access Token Display Styles */
+      .access-token-display {
+        background-color: #f8f9fa;
+        border: 1px solid #dadce0;
+        border-radius: 4px;
+        padding: 12px;
+        margin: 8px 0;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+      }
+      .access-token-masked {
+        font-family: 'Courier New', monospace;
+        font-size: 13px;
+        color: #3c4043;
+        background-color: white;
+        padding: 6px 8px;
+        border-radius: 3px;
+        border: 1px solid #e0e0e0;
+        flex: 1;
+        min-width: 0;
+      }
+      .access-token-actions {
+        display: flex;
+        gap: 4px;
+        flex-shrink: 0;
+      }
+      .icon-btn {
+        background: none;
+        border: 1px solid #dadce0;
+        border-radius: 3px;
+        width: 28px;
+        height: 28px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: background-color 0.2s;
+        color: #5f6368;
+      }
+      .icon-btn:hover {
+        background-color: #f1f3f4;
+        color: #3c4043;
+      }
+      .status-indicator {
+        display: inline-block;
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        margin-right: 6px;
+      }
+      .status-indicator.connected {
+        background-color: #137333;
+      }
+      .status-indicator.disconnected {
+        background-color: #d93025;
+      }
+      .status-indicator.unknown {
+        background-color: #f9ab00;
+      }
     </style>
   </head>
   <body>
@@ -229,186 +273,279 @@
       
       <div class="section">
         <div class="section-title">Current Form</div>
-        <div id="form-info">
-          <span class="loading"></span>Loading...
+        <div class="section-content">
+          <div id="form-info">
+            <span class="loading"></span>Loading...
+          </div>
         </div>
       </div>
       
       <div class="section">
         <div class="section-title">Processing Status</div>
-        <div id="processing-status">
-          <span class="loading"></span>Loading status...
-        </div>
-      </div>
-      
-      <div class="section">
-        <div class="section-title">API Configuration</div>
-        <div class="config-row">
-          <label>access token:</label>
-          <input type="password" id="access-token-input" placeholder="Enter your access token" style="flex: 1;">
-        </div>
-        <div style="margin-top: 8px;">
-          <button class="btn small-btn" id="saveaccessTokenBtn">Save access token</button>
-          <button class="btn secondary-btn small-btn" id="testApiBtn">Test Connection</button>
-        </div>
-        <div id="api-test-result" class="message info hidden"></div>
-        <p class="help-text">Required for blockchain verification services.</p>
-      </div>
-      
-      <div class="section">
-        <div class="section-title">Batch Configuration</div>
-        
-        <div style="margin: 12px 0;">
-          <span style="font-weight: 500;">Status:</span>
-          <span id="batch-status-badge" class="status-badge badge-disabled">Checking...</span>
-        </div>
-        
-        <div class="collapsible" id="config-panel">
-          <div class="collapsible-header" onclick="toggleConfig()">
-            <span>Configuration Settings</span>
-            <span class="chevron">▼</span>
+        <div class="section-content">
+          <div id="processing-status">
+            <span class="loading"></span>Loading status...
           </div>
-          <div class="collapsible-content">
+        </div>
+      </div>
+      
+      <div class="section">
+        <div class="section-title">
+          <span class="status-indicator unknown" id="token-status-indicator"></span>
+          API Configuration
+        </div>
+        <div class="section-content">
+          <!-- Saved Access Token Display -->
+          <div id="saved-token-display" class="access-token-display hidden">
+            <div class="access-token-masked" id="masked-token">ak_••••••••••••••••</div>
+            <div class="access-token-actions">
+              <button class="icon-btn" id="edit-token-btn" title="Edit Access Token">
+                ✎
+              </button>
+              <button class="icon-btn" id="remove-token-btn" title="Remove Access Token">
+                ×
+              </button>
+            </div>
+          </div>
+          
+          <!-- Access Token Input (hidden when token is saved) -->
+          <div id="token-input-section">
             <div class="config-row">
-              <label>Frequency:</label>
-              <select id="frequency-select">
-                <option value="manual">Manual Only</option>
-                <option value="hourly">Every N Hours</option>
-                <option value="daily">Daily</option>
-                <option value="weekly">Weekly</option>
-              </select>
+              <label>Access Token:</label>
+              <input type="password" id="access-token-input" placeholder="Enter your access token" style="flex: 1;">
             </div>
-            
-            <div class="config-row" id="interval-row">
-              <label>Hours:</label>
-              <input type="number" id="interval-input" min="1" max="24" value="3" placeholder="Hours">
+            <div style="margin-top: 8px;">
+              <button class="btn small-btn" id="saveaccessTokenBtn">Save Access Token</button>
+              <button class="btn secondary-btn small-btn" id="testApiBtn">Test Connection</button>
             </div>
-            
-            <div class="config-row" id="time-row">
-              <label>Time:</label>
-              <input type="time" id="time-input" value="11:00">
-            </div>
-            
-            <div style="margin-top: 12px;">
-              <button class="btn small-btn" id="saveConfigBtn">Save Configuration</button>
-              <button class="btn secondary-btn small-btn" id="disableBtn">Disable</button>
-            </div>
+          </div>
+          
+          <div id="api-test-result" class="message info hidden"></div>
+          <p class="help-text">Required for blockchain verification services.</p>
+        </div>
+      </div>
+      
+      <div class="section">
+        <div class="section-title">Batch Processing</div>
+        <div class="section-content">
+          <div class="config-row">
+            <label>Frequency:</label>
+            <select id="frequency-select">
+              <option value="manual">Manual Only</option>
+              <option value="daily">Daily</option>
+              <option value="weekly">Weekly</option>
+              <option value="interval">Every X Hours</option>
+            </select>
+          </div>
+          
+          <div class="config-row" id="interval-row" style="display: none;">
+            <label>Interval:</label>
+            <input type="number" id="interval-input" min="1" max="168" value="24" placeholder="Hours">
+          </div>
+          
+          <div class="config-row" id="time-row" style="display: none;">
+            <label>Time:</label>
+            <input type="time" id="time-input" value="11:00">
+          </div>
+          
+          <div style="margin-top: 12px;">
+            <button class="btn small-btn" id="saveConfigBtn">Save Configuration</button>
+            <button class="btn danger-btn small-btn" id="disableBtn">Disable Processing</button>
           </div>
         </div>
       </div>
       
       <div class="section">
         <div class="section-title">Manual Processing</div>
-        <button class="btn secondary-btn" id="processNowBtn">Process All Responses</button>
-        <div id="process-result" class="message info hidden"></div>
+        <div class="section-content">
+          <div id="process-result" class="message info hidden"></div>
+          <button class="btn" id="processResponsesBtn">Process Responses</button>
+          <p class="help-text">Manually process all form responses and generate blockchain hashes.</p>
+        </div>
       </div>
       
-      <div class="footer">
-        <a href="#" onclick="showAbout(); return false;">About</a> • 
-        <a href="https://NoTamperData.vercel.app/verify" target="_blank">Verify Responses</a> • 
-        <a href="https://NoTamperData.vercel.app/support" target="_blank">Support</a>
-      </div>
     </div>
-    
+
     <script>
-      // Show about dialog
-      function showAbout() {
-        google.script.run.showAbout();
+      // Initialize when page loads
+      document.addEventListener('DOMContentLoaded', function() {
+        loadFormInfo();
+        loadProcessingStatus();
+        loadSavedAccessToken(); // New function to load and display saved token
+        updateConfigVisibility();
+      });
+      
+      // Helper function to mask access token for display
+      function maskAccessToken(token) {
+        if (!token || token.length < 6) return 'ak_••••••••••••••••';
+        return token.substring(0, 3) + '••••••••••••' + token.substring(token.length - 2);
       }
       
-      // Toggle configuration panel
-      function toggleConfig() {
-        const panel = document.getElementById('config-panel');
-        panel.classList.toggle('open');
+      // Load and display saved access token
+      function loadSavedAccessToken() {
+        google.script.run
+          .withSuccessHandler(function(token) {
+            const savedDisplay = document.getElementById('saved-token-display');
+            const inputSection = document.getElementById('token-input-section');
+            const maskedToken = document.getElementById('masked-token');
+            const statusIndicator = document.getElementById('token-status-indicator');
+            
+            if (token && token.trim() !== '') {
+              // Show masked token display, hide input section
+              maskedToken.textContent = maskAccessToken(token);
+              savedDisplay.classList.remove('hidden');
+              inputSection.classList.add('hidden');
+              statusIndicator.className = 'status-indicator connected';
+              
+              // Test the connection automatically to update status
+              testConnectionSilently();
+            } else {
+              // Show input section, hide token display
+              savedDisplay.classList.add('hidden');
+              inputSection.classList.remove('hidden');
+              statusIndicator.className = 'status-indicator disconnected';
+            }
+          })
+          .withFailureHandler(function(error) {
+            console.error('Error loading saved access token:', error);
+            // Show input section by default
+            document.getElementById('saved-token-display').classList.add('hidden');
+            document.getElementById('token-input-section').classList.remove('hidden');
+            document.getElementById('token-status-indicator').className = 'status-indicator disconnected';
+          })
+          .getaccessToken();
       }
+      
+      // Silent connection test (doesn't show UI messages)
+      function testConnectionSilently() {
+        google.script.run
+          .withSuccessHandler(function(result) {
+            const statusIndicator = document.getElementById('token-status-indicator');
+            statusIndicator.className = result.success ? 'status-indicator connected' : 'status-indicator disconnected';
+          })
+          .withFailureHandler(function(error) {
+            document.getElementById('token-status-indicator').className = 'status-indicator disconnected';
+          })
+          .testApiConnection();
+      }
+      
+      // Edit token button handler
+      document.getElementById('edit-token-btn').addEventListener('click', function() {
+        google.script.run
+          .withSuccessHandler(function(token) {
+            const savedDisplay = document.getElementById('saved-token-display');
+            const inputSection = document.getElementById('token-input-section');
+            const input = document.getElementById('access-token-input');
+            
+            // Switch to edit mode
+            savedDisplay.classList.add('hidden');
+            inputSection.classList.remove('hidden');
+            input.value = token || '';
+            input.focus();
+          })
+          .getaccessToken();
+      });
+      
+      // Remove token button handler
+      document.getElementById('remove-token-btn').addEventListener('click', function() {
+        if (confirm('Are you sure you want to remove the saved access token?')) {
+          google.script.run
+            .withSuccessHandler(function(result) {
+              if (result.success) {
+                showMessage('Access token removed successfully', 'success');
+                loadSavedAccessToken(); // Refresh display
+              } else {
+                showMessage('Failed to remove access token', 'error');
+              }
+            })
+            .withFailureHandler(function(error) {
+              showMessage('Error removing access token: ' + error, 'error');
+            })
+            .removeaccessToken(); // We'll need to add this function to Code.js
+        }
+      });
       
       // Load form information
-      google.script.run
-        .withSuccessHandler(function(formInfo) {
-          const infoDiv = document.getElementById('form-info');
-          if (formInfo.error) {
-            infoDiv.innerHTML = '<span style="color: #d33b2c;">Unable to load form information</span>';
-          } else {
-            infoDiv.innerHTML = 
-              '<strong>' + formInfo.title + '</strong><br>' +
-              '<span style="font-size: 12px; color: #5f6368;">Form ID: ' + formInfo.id + '</span><br>' +
-              '<span style="font-size: 12px; color: #5f6368;">Total Responses: ' + formInfo.totalResponses + '</span>';
-          }
-        })
-        .withFailureHandler(function(error) {
-          document.getElementById('form-info').innerHTML = 
-            '<span style="color: #d33b2c;">Error loading form</span>';
-        })
-        .getFormInfo();
+      function loadFormInfo() {
+        google.script.run
+          .withSuccessHandler(function(info) {
+            const container = document.getElementById('form-info');
+            
+            if (info.error) {
+              container.innerHTML = '<div class="message error">' + info.error + '</div>';
+              return;
+            }
+            
+            container.innerHTML = `
+              <div style="margin-bottom: 12px;">
+                <strong>${info.title}</strong>
+                <div style="font-size: 12px; color: #5f6368; margin-top: 2px;">
+                  ${info.totalResponses} responses • ID: ${info.id.substring(0, 8)}...
+                </div>
+              </div>
+              <div style="font-size: 13px; color: #3c4043;">
+                ${info.description}
+              </div>
+            `;
+          })
+          .withFailureHandler(function(error) {
+            document.getElementById('form-info').innerHTML = 
+              '<div class="message error">Error loading form info: ' + error + '</div>';
+          })
+          .getFormInfo();
+      }
       
       // Load processing status
       function loadProcessingStatus() {
         google.script.run
           .withSuccessHandler(function(status) {
-            const statusDiv = document.getElementById('processing-status');
+            const container = document.getElementById('processing-status');
+            
             if (status.error) {
-              statusDiv.innerHTML = '<span style="color: #d33b2c;">Unable to load status</span>';
-            } else {
-              let html = '<div class="stats-grid">';
-              html += '<span class="stats-label">Total Responses:</span>';
-              html += '<span class="stats-value">' + status.totalResponses + '</span>';
-              
-              if (status.nextScheduled) {
-                html += '<span class="stats-label">Next Scheduled:</span>';
-                html += '<span class="stats-value">' + new Date(status.nextScheduled).toLocaleString() + '</span>';
-              }
-              
-              html += '</div>';
-              statusDiv.innerHTML = html;
+              container.innerHTML = '<div class="message error">' + status.error + '</div>';
+              return;
             }
             
-            // Update batch status
-            updateBatchStatus(status.config);
+            let statusHtml = '';
+            
+            if (status.config.enabled) {
+              statusHtml += `
+                <div class="message success">
+                  <strong>✓ Automatic Processing Enabled</strong><br>
+                  Frequency: ${status.config.frequency}
+                  ${status.config.time ? ` at ${status.config.time}` : ''}
+                  ${status.config.interval ? ` every ${status.config.interval} hours` : ''}
+                </div>
+              `;
+            } else {
+              statusHtml += '<div class="message info">Manual processing only</div>';
+            }
+            
+            if (status.lastProcessed) {
+              statusHtml += `
+                <div style="font-size: 12px; color: #5f6368; margin-top: 8px;">
+                  Last processed: ${new Date(status.lastProcessed).toLocaleString()}
+                </div>
+              `;
+            }
+            
+            container.innerHTML = statusHtml;
           })
           .withFailureHandler(function(error) {
             document.getElementById('processing-status').innerHTML = 
-              '<span style="color: #d33b2c;">Error loading status</span>';
+              '<div class="message error">Error loading status: ' + error + '</div>';
           })
           .getProcessingStatus();
       }
       
-      // Initial status load
-      loadProcessingStatus();
-      
-      // Update batch status display
-      function updateBatchStatus(config) {
-        const statusBadge = document.getElementById('batch-status-badge');
-        const frequencySelect = document.getElementById('frequency-select');
-        const intervalRow = document.getElementById('interval-row');
-        const timeRow = document.getElementById('time-row');
-        const intervalInput = document.getElementById('interval-input');
-        const timeInput = document.getElementById('time-input');
-        
-        if (config.enabled) {
-          statusBadge.textContent = 'Enabled (' + config.frequency + ')';
-          statusBadge.className = 'status-badge badge-enabled';
-        } else {
-          statusBadge.textContent = 'Disabled';
-          statusBadge.className = 'status-badge badge-disabled';
-        }
-        
-        // Update form fields
-        frequencySelect.value = config.frequency || 'manual';
-        intervalInput.value = config.interval || 3;
-        timeInput.value = config.time || '11:00';
-        
-        // Show/hide relevant fields
-        updateConfigVisibility();
-      }
-      
-      // Update configuration field visibility
+      // Update configuration visibility based on frequency selection
       function updateConfigVisibility() {
         const frequency = document.getElementById('frequency-select').value;
         const intervalRow = document.getElementById('interval-row');
         const timeRow = document.getElementById('time-row');
         
-        // Show interval only for hourly
-        intervalRow.style.display = frequency === 'hourly' ? 'flex' : 'none';
+        // Show interval for interval-based frequency
+        intervalRow.style.display = frequency === 'interval' ? 'flex' : 'none';
         
         // Show time for daily and weekly
         timeRow.style.display = (frequency === 'daily' || frequency === 'weekly') ? 'flex' : 'none';
@@ -443,12 +580,16 @@
         
         google.script.run
           .withSuccessHandler(function(result) {
+            const statusIndicator = document.getElementById('token-status-indicator');
+            
             if (result.success) {
-              apiTestResult.innerHTML = '<strong>✓ Connection Successful!</strong><br>' + (result.message || 'access token is valid and working.');
+              apiTestResult.innerHTML = '<strong>✓ Connection Successful!</strong><br>' + (result.message || 'Access token is valid and working.');
               apiTestResult.className = 'message success';
+              statusIndicator.className = 'status-indicator connected';
             } else {
               apiTestResult.innerHTML = '<strong>✗ Connection Failed</strong><br>' + (result.error || 'Unable to connect to API');
               apiTestResult.className = 'message error';
+              statusIndicator.className = 'status-indicator disconnected';
             }
             btn.disabled = false;
             btn.innerHTML = 'Test Connection';
@@ -456,13 +597,14 @@
           .withFailureHandler(function(error) {
             apiTestResult.innerHTML = '<strong>✗ Test Failed</strong><br>Error: ' + error;
             apiTestResult.className = 'message error';
+            document.getElementById('token-status-indicator').className = 'status-indicator disconnected';
             btn.disabled = false;
             btn.innerHTML = 'Test Connection';
           })
           .testApiConnection();
       });
       
-      // Save access token
+      // Save access token - UPDATED to refresh display after saving
       document.getElementById('saveaccessTokenBtn').addEventListener('click', function() {
         const accessToken = document.getElementById('access-token-input').value.trim();
         
@@ -477,18 +619,20 @@
         google.script.run
           .withSuccessHandler(function(result) {
             if (result.success) {
-              showMessage('access token saved successfully!', 'success');
+              showMessage('Access token saved successfully!', 'success');
+              // Clear input and refresh display to show masked token
               document.getElementById('access-token-input').value = '';
+              loadSavedAccessToken(); // This will switch to display mode
             } else {
               showMessage(result.error || 'Failed to save access token', 'error');
             }
             document.getElementById('saveaccessTokenBtn').disabled = false;
-            document.getElementById('saveaccessTokenBtn').innerHTML = 'Save access token';
+            document.getElementById('saveaccessTokenBtn').innerHTML = 'Save Access Token';
           })
           .withFailureHandler(function(error) {
             showMessage('Error: ' + error, 'error');
             document.getElementById('saveaccessTokenBtn').disabled = false;
-            document.getElementById('saveaccessTokenBtn').innerHTML = 'Save access token';
+            document.getElementById('saveaccessTokenBtn').innerHTML = 'Save Access Token';
           })
           .saveaccessToken(accessToken);
       });
@@ -528,6 +672,42 @@
           .saveBatchConfig(config);
       });
       
+      // Process responses
+      document.getElementById('processResponsesBtn').addEventListener('click', function() {
+        const processResult = document.getElementById('process-result');
+        const btn = this;
+        
+        btn.disabled = true;
+        btn.innerHTML = '<span class="loading"></span>Processing...';
+        processResult.textContent = 'Processing all responses...';
+        processResult.className = 'message info';
+        processResult.classList.remove('hidden');
+        
+        google.script.run
+          .withSuccessHandler(function(result) {
+            if (result.success) {
+              processResult.innerHTML = 
+                '<strong>✓ Processing Successful!</strong><br>' +
+                'Processed: ' + result.processed + ' responses<br>' +
+                (result.hash ? 'Hash: <code style="font-size: 11px; word-break: break-all;">' + result.hash.substring(0, 16) + '...</code>' : '');
+              processResult.className = 'message success';
+              loadProcessingStatus(); // Refresh status
+            } else {
+              processResult.innerHTML = '<strong>✗ Processing Failed</strong><br>' + (result.error || 'Unable to process responses');
+              processResult.className = 'message error';
+            }
+            btn.disabled = false;
+            btn.innerHTML = 'Process Responses';
+          })
+          .withFailureHandler(function(error) {
+            processResult.innerHTML = '<strong>✗ Processing Error</strong><br>Error: ' + error;
+            processResult.className = 'message error';
+            btn.disabled = false;
+            btn.innerHTML = 'Process Responses';
+          })
+          .processFormResponses();
+      });
+      
       // Disable batch processing
       document.getElementById('disableBtn').addEventListener('click', function() {
         const config = {
@@ -544,55 +724,19 @@
               showMessage('Batch processing disabled', 'info');
               loadProcessingStatus(); // Refresh status
             } else {
-              showMessage(result.error || 'Failed to disable', 'error');
+              showMessage(result.error || 'Failed to disable processing', 'error');
             }
             document.getElementById('disableBtn').disabled = false;
-            document.getElementById('disableBtn').innerHTML = 'Disable';
+            document.getElementById('disableBtn').innerHTML = 'Disable Processing';
           })
           .withFailureHandler(function(error) {
             showMessage('Error: ' + error, 'error');
             document.getElementById('disableBtn').disabled = false;
-            document.getElementById('disableBtn').innerHTML = 'Disable';
+            document.getElementById('disableBtn').innerHTML = 'Disable Processing';
           })
           .saveBatchConfig(config);
       });
       
-      // Process now button
-      document.getElementById('processNowBtn').addEventListener('click', function() {
-        const processResult = document.getElementById('process-result');
-        const btn = this;
-        
-        btn.disabled = true;
-        btn.innerHTML = '<span class="loading"></span>Processing...';
-        processResult.textContent = 'Processing all responses...';
-        processResult.className = 'message info';
-        processResult.classList.remove('hidden');
-        
-        google.script.run
-          .withSuccessHandler(function(result) {
-            if (result.success) {
-              processResult.innerHTML = 
-                '<strong>✓ Success!</strong><br>' +
-                'Processed: ' + result.processed + ' responses<br>' +
-                'Hash: <code style="font-size: 11px;">' + result.hash.substring(0, 16) + '...</code><br>' +
-                '<a href="https://NoTamperData.vercel.app/verify/' + result.hash + '" target="_blank">Verify</a>';
-              processResult.className = 'message success';
-              loadProcessingStatus(); // Refresh status
-            } else {
-              processResult.textContent = result.error || 'Unable to process responses';
-              processResult.className = 'message error';
-            }
-            btn.disabled = false;
-            btn.innerHTML = 'Process All Responses';
-          })
-          .withFailureHandler(function(error) {
-            processResult.textContent = 'Error: ' + error;
-            processResult.className = 'message error';
-            btn.disabled = false;
-            btn.innerHTML = 'Process All Responses';
-          })
-          .processBatchedResponses();
-      });
     </script>
   </body>
 </html>
