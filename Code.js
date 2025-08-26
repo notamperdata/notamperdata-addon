@@ -1,7 +1,5 @@
-// API endpoint - Update this to match your deployment
-// For testing: "http://localhost:3000/api"
-// For production: "https://NoTamperData.vercel.app/api"
-const API_ENDPOINT = "https://NoTamperData.vercel.app/api";
+// API endpoint
+const API_ENDPOINT = "https://www.notamperdata.com//api";
 
 // Add-on metadata
 const ADDON_NAME = "NoTamperData";
@@ -69,9 +67,9 @@ function showAbout() {
         • Hashes can be verified at any time
       </p>
       <p style="margin-bottom: 20px;">
-        <a href="https://NoTamperData.vercel.app/privacy" target="_blank">Privacy Policy</a> | 
-        <a href="https://NoTamperData.vercel.app/terms" target="_blank">Terms of Service</a> | 
-        <a href="https://NoTamperData.vercel.app/support" target="_blank">Support</a>
+        <a href="https://www.notamperdata.com/privacy" target="_blank">Privacy Policy</a> | 
+        <a href="https://www.notamperdata.com/terms" target="_blank">Terms of Service</a> | 
+        <a href="https://www.notamperdata.com/support" target="_blank">Support</a>
       </p>
       <div style="text-align: center; margin-top: 20px;">
         <button onclick="google.script.host.close()">Close</button>
