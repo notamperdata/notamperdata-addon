@@ -1,5 +1,5 @@
 // API endpoint
-const API_ENDPOINT = "https://www.notamperdata.com//api";
+const API_ENDPOINT = "https://www.notamperdata.com/api";
 
 // Add-on metadata
 const ADDON_NAME = "NoTamperData";
