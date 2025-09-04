@@ -1,11 +1,6 @@
-// API endpoint
 const API_ENDPOINT = "https://www.notamperdata.com/api";
-
-// Add-on metadata
 const ADDON_NAME = "NoTamperData";
 const ADDON_VERSION = "1.1.0";
-
-// Configuration for batch processing
 const BATCH_CONFIG_KEY = "NoTamperData_BATCH_CONFIG";
 const Access_Token_CONFIG_KEY = "NoTamperData_Access_Token";
 const LAST_PROCESSED_KEY = "NoTamperData_LAST_PROCESSED";
@@ -16,7 +11,6 @@ const LAST_PROCESSED_KEY = "NoTamperData_LAST_PROCESSED";
  */
 function onInstall(e) {
   onOpen(e);
-  // Show welcome message on first install
   FormApp.getUi().alert(
     'Welcome to NoTamperData!',
     'Thank you for installing NoTamperData. Click on Add-ons → NoTamperData → Open to get started.',
@@ -36,9 +30,6 @@ function onOpen(e) {
     .addToUi();
 }
 
-/**
- * Shows the main sidebar interface.
- */
 function showSidebar() {
   const ui = HtmlService.createHtmlOutputFromFile('Sidebar')
     .setTitle(ADDON_NAME)
@@ -46,9 +37,6 @@ function showSidebar() {
   FormApp.getUi().showSidebar(ui);
 }
 
-/**
- * Shows about dialog with links to privacy policy and terms.
- */
 function showAbout() {
   const htmlContent = `
     <div style="font-family: Arial, sans-serif; padding: 20px;">
@@ -84,10 +72,6 @@ function showAbout() {
   FormApp.getUi().showModalDialog(htmlOutput, 'About ' + ADDON_NAME);
 }
 
-/**
- * Get information about the current form.
- * @return {Object} Form information
- */
 function getFormInfo() {
   try {
     const form = FormApp.getActiveForm();
@@ -110,11 +94,6 @@ function getFormInfo() {
   }
 }
 
-/**
- * Save access token.
- * @param {string} accessToken - The access token to save
- * @return {Object} Result object
- */
 function saveaccessToken(accessToken) {
   try {
     if (!accessToken || accessToken.trim() === '') {
@@ -122,7 +101,6 @@ function saveaccessToken(accessToken) {
     }
     
     PropertiesService.getDocumentProperties().setProperty(Access_Token_CONFIG_KEY, accessToken.trim());
-    console.log('access token saved successfully');
     return { success: true };
   } catch (error) {
     console.error('Error saving access token:', error);
@@ -130,10 +108,6 @@ function saveaccessToken(accessToken) {
   }
 }
 
-/**
- * Get saved access token.
- * @return {string|null} The saved access token or null
- */
 function getaccessToken() {
   try {
     return PropertiesService.getDocumentProperties().getProperty(Access_Token_CONFIG_KEY);
@@ -143,14 +117,9 @@ function getaccessToken() {
   }
 }
 
-/**
- * Remove saved access token.
- * @return {Object} Result object
- */
 function removeaccessToken() {
   try {
     PropertiesService.getDocumentProperties().deleteProperty(Access_Token_CONFIG_KEY);
-    console.log('access token removed successfully');
     return { success: true };
   } catch (error) {
     console.error('Error removing access token:', error);
@@ -158,10 +127,6 @@ function removeaccessToken() {
   }
 }
 
-/**
- * Get current batch configuration.
- * @return {Object} Batch configuration
- */
 function getBatchConfig() {
   try {
     const config = PropertiesService.getDocumentProperties().getProperty(BATCH_CONFIG_KEY);
@@ -169,12 +134,11 @@ function getBatchConfig() {
       return JSON.parse(config);
     }
     
-    // Default configuration
     return {
       enabled: false,
-      frequency: 'daily', // 'manual', 'hourly', 'daily', 'weekly'
-      time: '11:00', // For daily/weekly scheduling
-      interval: 24 // Hours for interval-based scheduling
+      frequency: 'daily',
+      time: '11:00',
+      interval: 24
     };
   } catch (error) {
     console.error('Error getting batch config:', error);
@@ -182,11 +146,6 @@ function getBatchConfig() {
   }
 }
 
-/**
- * Save batch configuration.
- * @param {Object} config - Batch configuration
- * @return {Object} Result object
- */
 function saveBatchConfig(config) {
   try {
     PropertiesService.getDocumentProperties().setProperty(
@@ -194,7 +153,6 @@ function saveBatchConfig(config) {
       JSON.stringify(config)
     );
     
-    // Update triggers based on new configuration
     if (config.enabled) {
       updateBatchTriggers(config);
     } else {
@@ -208,10 +166,6 @@ function saveBatchConfig(config) {
   }
 }
 
-/**
- * Get last processed timestamp.
- * @return {string|null} ISO timestamp or null
- */
 function getLastProcessedTimestamp() {
   try {
     return PropertiesService.getDocumentProperties().getProperty(LAST_PROCESSED_KEY);
@@ -221,10 +175,6 @@ function getLastProcessedTimestamp() {
   }
 }
 
-/**
- * Update last processed timestamp.
- * @param {string} timestamp - ISO timestamp
- */
 function setLastProcessedTimestamp(timestamp) {
   try {
     PropertiesService.getDocumentProperties().setProperty(LAST_PROCESSED_KEY, timestamp);
@@ -233,20 +183,14 @@ function setLastProcessedTimestamp(timestamp) {
   }
 }
 
-/**
- * Update batch processing triggers based on configuration.
- * @param {Object} config - Batch configuration
- */
 function updateBatchTriggers(config) {
   try {
-    // Remove existing triggers first
     removeBatchTriggers();
     
     const form = FormApp.getActiveForm();
     
     switch (config.frequency) {
       case 'manual':
-        // No automatic triggers for manual mode
         break;
         
       case 'hourly':
@@ -278,16 +222,12 @@ function updateBatchTriggers(config) {
         break;
     }
     
-    console.log(`Batch triggers updated for ${config.frequency} processing`);
   } catch (error) {
     console.error('Error updating batch triggers:', error);
     throw error;
   }
 }
 
-/**
- * Remove all batch processing triggers.
- */
 function removeBatchTriggers() {
   try {
     const triggers = ScriptApp.getProjectTriggers();
@@ -296,16 +236,11 @@ function removeBatchTriggers() {
         ScriptApp.deleteTrigger(trigger);
       }
     });
-    console.log('Batch triggers removed');
   } catch (error) {
     console.error('Error removing batch triggers:', error);
   }
 }
 
-/**
- * Check if batch processing is enabled.
- * @return {boolean} Whether batch processing is enabled
- */
 function isBatchProcessingEnabled() {
   try {
     const config = getBatchConfig();
@@ -316,36 +251,22 @@ function isBatchProcessingEnabled() {
   }
 }
 
-/**
- * Standardizes form response data to enable CSV export verification.
- * This method ensures that form data and CSV exports produce identical hashes.
- * @param {Object} formData - The form response data
- * @return {Object} Standardized data structure
- */
 function standardizeDataForCsvCompatibility(formData) {
-  console.log("Standardizing data for CSV compatibility");
-  
   let standardized;
   
-  // Handle batch data (multiple responses)
   if (formData.responses && Array.isArray(formData.responses)) {
     standardized = {
       responseCount: formData.responseCount || formData.responses.length,
       responses: formData.responses.map(function(response, index) {
         return {
-          // Normalize response ID to be predictable
           responseId: "response-" + index,
-          // Remove timestamp entirely for consistency
-          // Standardize items
           items: (response.items || [])
-            .slice() // Create copy
+            .slice()
             .sort(function(a, b) {
-              // Sort by title alphabetically for consistency
               return (a.title || "").localeCompare(b.title || "");
             })
             .map(function(item) {
               return {
-                // Remove dynamic fields (itemId, type)
                 title: item.title || "",
                 response: item.response !== null && item.response !== undefined ? String(item.response) : ""
               };
@@ -354,7 +275,6 @@ function standardizeDataForCsvCompatibility(formData) {
       })
     };
   }
-  // Handle single response
   else if (formData.items && Array.isArray(formData.items)) {
     standardized = {
       responseId: "response-0",
@@ -372,26 +292,17 @@ function standardizeDataForCsvCompatibility(formData) {
     };
   }
   else {
-    // If it's already in a different format, return as-is
     standardized = formData;
   }
   
-  console.log("Data standardized successfully");
   return standardized;
 }
 
-/**
- * Process form responses manually (called by UI button).
- * @return {Object} Processing result
- */
 function processFormResponses() {
   try {
-    console.log("Manual processing of form responses initiated");
-    
     const result = processBatchedResponses();
     
     if (result.success) {
-      // Update last processed timestamp for manual processing
       setLastProcessedTimestamp(new Date().toISOString());
     }
     
@@ -405,23 +316,12 @@ function processFormResponses() {
   }
 }
 
-
-
-/**
- * Main function to process all responses in batch.
- * Called by time-based triggers or manually.
- * Always processes ALL responses, not just new ones.
- * @return {Object} Processing result
- */
 function processBatchedResponses() {
   try {
-    console.log("Starting batch processing of ALL responses");
-    
     const form = FormApp.getActiveForm();
     const allResponses = form.getResponses();
     
     if (allResponses.length === 0) {
-      console.log("No responses to process");
       return { 
         success: true, 
         message: "No responses found in form",
@@ -430,14 +330,10 @@ function processBatchedResponses() {
       };
     }
     
-    console.log(`Processing ALL ${allResponses.length} responses`);
-    
-    // Extract all response data
     const batchData = allResponses.map(response => 
       FormHandler.extractResponseData(response)
     );
     
-    // Create batch structure
     const batchStructure = {
       formId: form.getId(),
       formTitle: form.getTitle(),
@@ -445,13 +341,9 @@ function processBatchedResponses() {
       responses: batchData
     };
     
-    // Apply standardization for CSV compatibility
     const standardizedBatch = standardizeDataForCsvCompatibility(batchStructure);
-    
-    // Create batch hash from standardized data
     const batchHash = Hashing.hashStandardizedData(standardizedBatch);
     
-    // Prepare metadata for the batch
     const metadata = {
       formId: form.getId(),
       responseId: `batch-all-${Date.now()}`,
@@ -465,9 +357,6 @@ function processBatchedResponses() {
       }
     };
     
-    console.log(`Generated standardized batch hash: ${batchHash} for ${batchData.length} responses`);
-    
-    // Send batch hash to API
     const result = ApiClient.sendHashToApi(batchHash, metadata);
     
     if (result.error) {
@@ -480,7 +369,6 @@ function processBatchedResponses() {
       };
     }
     
-    console.log(`Batch processing completed successfully - processed ALL responses with standardization`);
     return { 
       success: true, 
       hash: batchHash,
@@ -498,14 +386,9 @@ function processBatchedResponses() {
   }
 }
 
-/**
- * Test API connection and authentication.
- * @return {Object} Test result with success/error status
- */
 function testApiConnection() {
   try {
     const result = ApiClient.testApiConnection();
-    console.log('API connection test result:', result);
     return result;
   } catch (error) {
     console.error('Error testing API connection:', error);
@@ -516,10 +399,6 @@ function testApiConnection() {
   }
 }
 
-/**
- * Get processing status and statistics.
- * @return {Object} Status information
- */
 function getProcessingStatus() {
   try {
     const form = FormApp.getActiveForm();
@@ -529,9 +408,7 @@ function getProcessingStatus() {
     
     let nextScheduled = null;
     
-    // Calculate next scheduled run
     if (config.enabled && config.frequency !== 'manual') {
-      // This is a simplified calculation - in practice, you'd check the actual trigger schedule
       const now = new Date();
       switch (config.frequency) {
         case 'hourly':
@@ -546,7 +423,6 @@ function getProcessingStatus() {
           }
           break;
         case 'weekly':
-          // Simplified - next Monday at specified time
           nextScheduled = new Date();
           const daysUntilMonday = (1 + 7 - nextScheduled.getDay()) % 7 || 7;
           nextScheduled.setDate(nextScheduled.getDate() + daysUntilMonday);
@@ -558,7 +434,7 @@ function getProcessingStatus() {
     
     return {
       totalResponses: allResponses.length,
-      readyToProcess: allResponses.length, // All responses are always ready to process
+      readyToProcess: allResponses.length,
       nextScheduled: nextScheduled ? nextScheduled.toISOString() : null,
       lastProcessed: lastProcessed,
       config: config,
@@ -570,20 +446,8 @@ function getProcessingStatus() {
   }
 }
 
-//HELPER FUNCTIONS
-
-/**
- * Functions for handling form responses.
- */
 var FormHandler = (function() {
-  /**
-   * Extracts response data in a standardized format.
-   * @param {FormResponse} formResponse - The form response object
-   * @return {Object} Standardized response data
-   */
   function extractResponseData(formResponse) {
-    console.log(`Extracting data from response ID: ${formResponse.getId()}`);
-    
     const result = {
       responseId: formResponse.getId(),
       timestamp: formResponse.getTimestamp().toISOString(),
@@ -591,26 +455,20 @@ var FormHandler = (function() {
     };
     
     try {
-      // Get all item responses
       const itemResponses = formResponse.getItemResponses();
-      console.log(`Processing ${itemResponses.length} response items`);
       
-      // Process each item response
       itemResponses.forEach(function(itemResponse, index) {
         const item = FormApp.getActiveForm().getItemById(itemResponse.getItem().getId());
         const itemType = item.getType().toString();
         
         let responseValue = itemResponse.getResponse();
         
-        // Handle different item types to ensure consistent formatting
         switch(itemType) {
           case 'CHECKBOX':
-            // Ensure array is sorted for consistent hashing
             responseValue = responseValue.slice().sort();
             break;
           case 'GRID':
           case 'CHECKBOX_GRID':
-            // Ensure grid responses are consistently ordered
             if (responseValue && typeof responseValue === 'object') {
               responseValue = Object.keys(responseValue).sort().reduce((obj, key) => {
                 obj[key] = responseValue[key];
@@ -630,7 +488,6 @@ var FormHandler = (function() {
         result.items.push(response);
       });
       
-      console.log(`Successfully processed response data`);
       return result;
     } catch (error) {
       console.error(`Error extracting response data: ${error.toString()}`);
@@ -643,72 +500,41 @@ var FormHandler = (function() {
   };
 })();
 
-/**
- * Contains functions for hashing response data.
- */
 var Hashing = (function() {
-  /**
-   * Creates a deterministic hash from response data.
-   * First standardizes the data, then hashes it.
-   * @param {Object} responseData - The response data
-   * @return {String} SHA-256 hash of the standardized data
-   */
   function hashResponseData(responseData) {
     const standardized = standardizeDataForCsvCompatibility(responseData);
     return createDeterministicHash(standardized);
   }
   
-  /**
-   * Creates a deterministic hash from batch data.
-   * First standardizes the data, then hashes it.
-   * @param {Object} batchData - The batch data containing multiple responses
-   * @return {String} SHA-256 hash of the standardized data
-   */
   function hashBatchData(batchData) {
     const standardized = standardizeDataForCsvCompatibility(batchData);
     return createDeterministicHash(standardized);
   }
   
-  /**
-   * Creates a deterministic hash from already standardized data.
-   * @param {Object} standardizedData - The standardized data
-   * @return {String} SHA-256 hash of the data
-   */
   function hashStandardizedData(standardizedData) {
     return createDeterministicHash(standardizedData);
   }
   
-  /**
-   * Creates a deterministic hash from any data object.
-   * This function must match exactly the hashing logic in the web app.
-   * @param {Object} data - The data to hash
-   * @return {String} SHA-256 hash as hex string
-   */
   function createDeterministicHash(data) {
-    // Convert to string in a deterministic way (stable ordering of keys)
     const jsonString = JSON.stringify(data, function(key, value) {
-      // Handle arrays to ensure consistent ordering
       if (Array.isArray(value)) {
-        // Sort simple arrays by their string representation
         if (value.every(item => typeof item !== 'object' || item === null)) {
           return [...value].sort();
         }
         
-        // For arrays of objects, sort by stringifying their contents first
         return value
-          .map(item => JSON.stringify(item, arguments.callee)) // Use the same replacer function recursively
+          .map(item => JSON.stringify(item, arguments.callee))
           .sort()
           .map(item => {
             try {
               return JSON.parse(item);
             } catch (e) {
-              console.log("Parse error in hashing:", e);
+              console.error("Parse error in hashing:", e);
               return item;
             }
           });
       }
       
-      // Handle objects to ensure consistent key ordering
       if (value !== null && typeof value === 'object' && !Array.isArray(value)) {
         return Object.keys(value).sort().reduce((obj, k) => {
           obj[k] = value[k];
@@ -719,18 +545,15 @@ var Hashing = (function() {
       return value;
     });
     
-    // Use Apps Script's Utilities to compute SHA-256 hash
     const bytes = Utilities.computeDigest(
       Utilities.DigestAlgorithm.SHA_256, 
       jsonString
     );
     
-    // Convert bytes to hex string
     const hexHash = bytes.map(function(byte) {
       return ('0' + (byte & 0xFF).toString(16)).slice(-2);
     }).join('');
     
-    console.log("Hash generated successfully");
     return hexHash;
   }
   
