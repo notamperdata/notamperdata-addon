@@ -7,7 +7,6 @@ const LAST_PROCESSED_KEY = "NoTamperData_LAST_PROCESSED";
 
 /**
  * Runs when the add-on is installed.
- * @param {Object} e - The installation event object
  */
 function onInstall(e) {
   onOpen(e);
@@ -20,7 +19,6 @@ function onInstall(e) {
 
 /**
  * Runs when the form is opened.
- * @param {Object} e - The open event object
  */
 function onOpen(e) {
   FormApp.getUi()
@@ -138,11 +136,12 @@ function getBatchConfig() {
       enabled: false,
       frequency: 'daily',
       time: '11:00',
-      interval: 24
+      interval: 24,
+      day: 1
     };
   } catch (error) {
     console.error('Error getting batch config:', error);
-    return { enabled: false, frequency: 'manual' };
+    return { enabled: false, frequency: 'manual', day: 1 };
   }
 }
 
@@ -183,6 +182,23 @@ function setLastProcessedTimestamp(timestamp) {
   }
 }
 
+/**
+ * Convert day number to ScriptApp.WeekDay enum.
+ */
+function getWeekDayFromNumber(dayNumber) {
+  const weekDays = [
+    ScriptApp.WeekDay.SUNDAY,
+    ScriptApp.WeekDay.MONDAY,
+    ScriptApp.WeekDay.TUESDAY,
+    ScriptApp.WeekDay.WEDNESDAY,
+    ScriptApp.WeekDay.THURSDAY,
+    ScriptApp.WeekDay.FRIDAY,
+    ScriptApp.WeekDay.SATURDAY
+  ];
+  
+  return weekDays[dayNumber] || ScriptApp.WeekDay.MONDAY;
+}
+
 function updateBatchTriggers(config) {
   try {
     removeBatchTriggers();
@@ -193,7 +209,7 @@ function updateBatchTriggers(config) {
       case 'manual':
         break;
         
-      case 'hourly':
+      case 'interval':
         ScriptApp.newTrigger('processBatchedResponses')
           .timeBased()
           .everyHours(config.interval || 1)
@@ -212,10 +228,12 @@ function updateBatchTriggers(config) {
         
       case 'weekly':
         const [weekHours, weekMinutes] = (config.time || '11:00').split(':');
+        const dayOfWeek = getWeekDayFromNumber(parseInt(config.day) || 1);
+        
         ScriptApp.newTrigger('processBatchedResponses')
           .timeBased()
           .everyWeeks(1)
-          .onWeekDay(ScriptApp.WeekDay.MONDAY)
+          .onWeekDay(dayOfWeek)
           .atHour(parseInt(weekHours))
           .nearMinute(parseInt(weekMinutes))
           .create();
@@ -411,7 +429,7 @@ function getProcessingStatus() {
     if (config.enabled && config.frequency !== 'manual') {
       const now = new Date();
       switch (config.frequency) {
-        case 'hourly':
+        case 'interval':
           nextScheduled = new Date(now.getTime() + (config.interval || 1) * 60 * 60 * 1000);
           break;
         case 'daily':
@@ -424,8 +442,9 @@ function getProcessingStatus() {
           break;
         case 'weekly':
           nextScheduled = new Date();
-          const daysUntilMonday = (1 + 7 - nextScheduled.getDay()) % 7 || 7;
-          nextScheduled.setDate(nextScheduled.getDate() + daysUntilMonday);
+          const selectedDay = parseInt(config.day) || 1;
+          const daysUntilTarget = (selectedDay + 7 - nextScheduled.getDay()) % 7 || 7;
+          nextScheduled.setDate(nextScheduled.getDate() + daysUntilTarget);
           const [weekHours, weekMinutes] = (config.time || '11:00').split(':');
           nextScheduled.setHours(parseInt(weekHours), parseInt(weekMinutes), 0, 0);
           break;
