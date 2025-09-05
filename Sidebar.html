@@ -736,6 +736,15 @@
                 'Processed: ' + result.processed + ' responses' +
                 hashDisplay;
               processResult.className = 'message success';
+              
+              // Add click event listener for hash links
+              const hashLink = processResult.querySelector('.hash-link');
+              if (hashLink) {
+                hashLink.addEventListener('click', function() {
+                  openVerificationPage(this.dataset.hash);
+                });
+              }
+              
               loadProcessingStatus(); // Refresh status
             } else {
               processResult.innerHTML = '<strong>✗ Processing Failed</strong><br>' + (result.error || 'Unable to process responses');
@@ -755,7 +764,7 @@
       
       // Function to open verification page with hash
       function openVerificationPage(hash) {
-        const verificationUrl = `${VERIFICATION_BASE_URL}${hash}`;
+        const verificationUrl = `https://www.notamperdata.com/verify?hash=${hash}`;
         window.open(verificationUrl, '_blank');
       }
       
