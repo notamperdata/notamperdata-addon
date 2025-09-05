@@ -755,7 +755,7 @@
       
       // Function to open verification page with hash
       function openVerificationPage(hash) {
-        const verificationUrl = `https://notamperdata.com/verification/${hash}`;
+        const verificationUrl = `${VERIFICATION_BASE_URL}${hash}`;
         window.open(verificationUrl, '_blank');
       }
       
