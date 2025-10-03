@@ -1,16 +1,25 @@
 {
-  "timeZone": "America/New_York",
+  "timeZone": "Africa/Nairobi",
   "dependencies": {
     "enabledAdvancedServices": []
   },
   "exceptionLogging": "STACKDRIVER",
+  "runtimeVersion": "V8",
   "oauthScopes": [
     "https://www.googleapis.com/auth/forms.currentonly",
+    "https://www.googleapis.com/auth/forms.responses.readonly",
+    "https://www.googleapis.com/auth/script.container.ui",
     "https://www.googleapis.com/auth/script.external_request"
   ],
-  "runtimeVersion": "V8",
-  "webapp": {
-    "executeAs": "USER_ACCESSING",
-    "access": "ANYONE"
+  "addOns": {
+    "common": {
+      "name": "NoTamperData",
+      "logoUrl": "https://www.notamperdata.com/logo.png",
+      "useLocaleFromApp": true,
+      "homepageTrigger": {
+        "runFunction": "openSidebar"
+      },
+      "universalActions": []
+    }
   }
 }
