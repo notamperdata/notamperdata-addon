@@ -1,14 +1,24 @@
+// ==========================================
+// CONFIGURATION CONSTANTS
+// ==========================================
+
 const API_ENDPOINT = "https://www.notamperdata.com/api";
 const ADDON_NAME = "NoTamperData";
 const ADDON_VERSION = "1.1.0";
 const BATCH_CONFIG_KEY = "NoTamperData_BATCH_CONFIG";
-const Access_Token_CONFIG_KEY = "NoTamperData_Access_Token";
+const ACCESS_TOKEN_CONFIG_KEY = "NoTamperData_Access_Token";
 const LAST_PROCESSED_KEY = "NoTamperData_LAST_PROCESSED";
+
+// ==========================================
+// ADD-ON LIFECYCLE HANDLERS
+// ==========================================
 
 /**
  * Runs when the add-on is installed.
+ * @param {Object} e - Event object
  */
 function onInstall(e) {
+  console.log('NoTamperData add-on installed');
   onOpen(e);
   FormApp.getUi().alert(
     'Welcome to NoTamperData!',
@@ -19,8 +29,10 @@ function onInstall(e) {
 
 /**
  * Runs when the form is opened.
+ * @param {Object} e - Event object
  */
 function onOpen(e) {
+  console.log('NoTamperData add-on menu created');
   FormApp.getUi()
     .createAddonMenu()
     .addItem('Open', 'showSidebar')
@@ -28,14 +40,22 @@ function onOpen(e) {
     .addToUi();
 }
 
+/**
+ * Shows the add-on sidebar interface.
+ */
 function showSidebar() {
+  console.log('Opening NoTamperData sidebar');
   const ui = HtmlService.createHtmlOutputFromFile('Sidebar')
     .setTitle(ADDON_NAME)
     .setWidth(350);
   FormApp.getUi().showSidebar(ui);
 }
 
+/**
+ * Shows the About dialog with version and documentation links.
+ */
 function showAbout() {
+  console.log('Opening About dialog');
   const htmlContent = `
     <div style="font-family: Arial, sans-serif; padding: 20px;">
       <h3 style="color: #0033AD;">About ${ADDON_NAME}</h3>
@@ -70,11 +90,21 @@ function showAbout() {
   FormApp.getUi().showModalDialog(htmlOutput, 'About ' + ADDON_NAME);
 }
 
+// ==========================================
+// FORM INFORMATION
+// ==========================================
+
+/**
+ * Retrieves information about the current form including response count and configuration.
+ * @return {Object} Form metadata and configuration
+ */
 function getFormInfo() {
   try {
     const form = FormApp.getActiveForm();
     const responses = form.getResponses();
     const config = getBatchConfig();
+    
+    console.log(`Form info retrieved: ${responses.length} responses`);
     
     return {
       title: form.getTitle(),
@@ -92,13 +122,36 @@ function getFormInfo() {
   }
 }
 
-function saveaccessToken(accessToken) {
+// ==========================================
+// ACCESS TOKEN MANAGEMENT
+// ==========================================
+
+/**
+ * Saves the access token to document properties after validation.
+ * @param {string} accessToken - The access token to save
+ * @return {Object} Result object with success status
+ */
+function saveAccessToken(accessToken) {
   try {
     if (!accessToken || accessToken.trim() === '') {
-      return { success: false, error: 'access token cannot be empty' };
+      return { success: false, error: 'Access token cannot be empty' };
     }
     
-    PropertiesService.getDocumentProperties().setProperty(Access_Token_CONFIG_KEY, accessToken.trim());
+    // Validate access token format: ak_[16 alphanumeric characters]
+    const tokenPattern = /^ak_[a-zA-Z0-9]{16}$/;
+    if (!tokenPattern.test(accessToken.trim())) {
+      console.warn('Invalid access token format provided');
+      return { 
+        success: false, 
+        error: 'Invalid access token format. Expected: ak_[16 alphanumeric characters]' 
+      };
+    }
+    
+    PropertiesService.getDocumentProperties().setProperty(
+      ACCESS_TOKEN_CONFIG_KEY, 
+      accessToken.trim()
+    );
+    console.log('Access token saved successfully');
     return { success: true };
   } catch (error) {
     console.error('Error saving access token:', error);
@@ -106,18 +159,27 @@ function saveaccessToken(accessToken) {
   }
 }
 
-function getaccessToken() {
+/**
+ * Retrieves the stored access token from document properties.
+ * @return {string|null} The access token or null if not found
+ */
+function getAccessToken() {
   try {
-    return PropertiesService.getDocumentProperties().getProperty(Access_Token_CONFIG_KEY);
+    return PropertiesService.getDocumentProperties().getProperty(ACCESS_TOKEN_CONFIG_KEY);
   } catch (error) {
     console.error('Error getting access token:', error);
     return null;
   }
 }
 
-function removeaccessToken() {
+/**
+ * Removes the access token from document properties.
+ * @return {Object} Result object with success status
+ */
+function removeAccessToken() {
   try {
-    PropertiesService.getDocumentProperties().deleteProperty(Access_Token_CONFIG_KEY);
+    PropertiesService.getDocumentProperties().deleteProperty(ACCESS_TOKEN_CONFIG_KEY);
+    console.log('Access token removed successfully');
     return { success: true };
   } catch (error) {
     console.error('Error removing access token:', error);
@@ -125,6 +187,14 @@ function removeaccessToken() {
   }
 }
 
+// ==========================================
+// BATCH CONFIGURATION MANAGEMENT
+// ==========================================
+
+/**
+ * Retrieves the batch processing configuration.
+ * @return {Object} Configuration object with frequency, time, and other settings
+ */
 function getBatchConfig() {
   try {
     const config = PropertiesService.getDocumentProperties().getProperty(BATCH_CONFIG_KEY);
@@ -132,6 +202,7 @@ function getBatchConfig() {
       return JSON.parse(config);
     }
     
+    // Return default configuration
     return {
       enabled: false,
       frequency: 'daily',
@@ -145,12 +216,18 @@ function getBatchConfig() {
   }
 }
 
+/**
+ * Saves the batch processing configuration and updates triggers accordingly.
+ * @param {Object} config - Configuration object
+ * @return {Object} Result object with success status
+ */
 function saveBatchConfig(config) {
   try {
     PropertiesService.getDocumentProperties().setProperty(
       BATCH_CONFIG_KEY, 
       JSON.stringify(config)
     );
+    console.log(`Batch config saved: ${config.frequency}, enabled: ${config.enabled}`);
     
     if (config.enabled) {
       updateBatchTriggers(config);
@@ -165,6 +242,10 @@ function saveBatchConfig(config) {
   }
 }
 
+/**
+ * Retrieves the timestamp of the last batch processing.
+ * @return {string|null} ISO timestamp string or null
+ */
 function getLastProcessedTimestamp() {
   try {
     return PropertiesService.getDocumentProperties().getProperty(LAST_PROCESSED_KEY);
@@ -174,16 +255,27 @@ function getLastProcessedTimestamp() {
   }
 }
 
+/**
+ * Sets the timestamp of the last batch processing.
+ * @param {string} timestamp - ISO timestamp string
+ */
 function setLastProcessedTimestamp(timestamp) {
   try {
     PropertiesService.getDocumentProperties().setProperty(LAST_PROCESSED_KEY, timestamp);
+    console.log(`Last processed timestamp updated: ${timestamp}`);
   } catch (error) {
     console.error('Error setting last processed timestamp:', error);
   }
 }
 
+// ==========================================
+// TRIGGER MANAGEMENT
+// ==========================================
+
 /**
- * Convert day number to ScriptApp.WeekDay enum.
+ * Converts a day number (0-6) to ScriptApp.WeekDay enum.
+ * @param {number} dayNumber - Day number (0=Sunday, 6=Saturday)
+ * @return {ScriptApp.WeekDay} Week day enum value
  */
 function getWeekDayFromNumber(dayNumber) {
   const weekDays = [
@@ -199,14 +291,24 @@ function getWeekDayFromNumber(dayNumber) {
   return weekDays[dayNumber] || ScriptApp.WeekDay.MONDAY;
 }
 
+/**
+ * Updates batch processing triggers based on configuration.
+ * Removes existing triggers and creates new ones.
+ * @param {Object} config - Batch configuration object
+ */
 function updateBatchTriggers(config) {
   try {
+    console.log('Updating batch triggers...');
     removeBatchTriggers();
+    
+    // Small delay to ensure cleanup is complete
+    Utilities.sleep(100);
     
     const form = FormApp.getActiveForm();
     
     switch (config.frequency) {
       case 'manual':
+        console.log('Manual mode - no triggers created');
         break;
         
       case 'interval':
@@ -214,6 +316,7 @@ function updateBatchTriggers(config) {
           .timeBased()
           .everyHours(config.interval || 1)
           .create();
+        console.log(`Interval trigger created: every ${config.interval} hours`);
         break;
         
       case 'daily':
@@ -224,6 +327,7 @@ function updateBatchTriggers(config) {
           .atHour(parseInt(hours))
           .nearMinute(parseInt(minutes))
           .create();
+        console.log(`Daily trigger created: ${config.time}`);
         break;
         
       case 'weekly':
@@ -237,6 +341,7 @@ function updateBatchTriggers(config) {
           .atHour(parseInt(weekHours))
           .nearMinute(parseInt(weekMinutes))
           .create();
+        console.log(`Weekly trigger created: day ${config.day} at ${config.time}`);
         break;
     }
     
@@ -246,19 +351,31 @@ function updateBatchTriggers(config) {
   }
 }
 
+/**
+ * Removes all batch processing triggers.
+ */
 function removeBatchTriggers() {
   try {
     const triggers = ScriptApp.getProjectTriggers();
+    let removedCount = 0;
+    
     triggers.forEach(function(trigger) {
       if (trigger.getHandlerFunction() === 'processBatchedResponses') {
         ScriptApp.deleteTrigger(trigger);
+        removedCount++;
       }
     });
+    
+    console.log(`Removed ${removedCount} batch processing triggers`);
   } catch (error) {
     console.error('Error removing batch triggers:', error);
   }
 }
 
+/**
+ * Checks if batch processing is currently enabled.
+ * @return {boolean} True if enabled, false otherwise
+ */
 function isBatchProcessingEnabled() {
   try {
     const config = getBatchConfig();
@@ -269,9 +386,20 @@ function isBatchProcessingEnabled() {
   }
 }
 
+// ==========================================
+// DATA STANDARDIZATION
+// ==========================================
+
+/**
+ * Standardizes form data structure for CSV compatibility and consistent hashing.
+ * Ensures deterministic ordering of items and responses.
+ * @param {Object} formData - Raw form data structure
+ * @return {Object} Standardized data structure
+ */
 function standardizeDataForCsvCompatibility(formData) {
   let standardized;
   
+  // Handle batch data with multiple responses
   if (formData.responses && Array.isArray(formData.responses)) {
     standardized = {
       responseCount: formData.responseCount || formData.responses.length,
@@ -286,13 +414,15 @@ function standardizeDataForCsvCompatibility(formData) {
             .map(function(item) {
               return {
                 title: item.title || "",
-                response: item.response !== null && item.response !== undefined ? String(item.response) : ""
+                response: item.response !== null && item.response !== undefined ? 
+                  String(item.response) : ""
               };
             })
         };
       })
     };
   }
+  // Handle single response data
   else if (formData.items && Array.isArray(formData.items)) {
     standardized = {
       responseId: "response-0",
@@ -304,11 +434,13 @@ function standardizeDataForCsvCompatibility(formData) {
         .map(function(item) {
           return {
             title: item.title || "",
-            response: item.response !== null && item.response !== undefined ? String(item.response) : ""
+            response: item.response !== null && item.response !== undefined ? 
+              String(item.response) : ""
           };
         })
     };
   }
+  // Data is already in correct format
   else {
     standardized = formData;
   }
@@ -316,12 +448,23 @@ function standardizeDataForCsvCompatibility(formData) {
   return standardized;
 }
 
+// ==========================================
+// FORM RESPONSE PROCESSING
+// ==========================================
+
+/**
+ * Manually processes all form responses.
+ * Called from the UI when user clicks "Process Responses" button.
+ * @return {Object} Processing result with success status and statistics
+ */
 function processFormResponses() {
+  console.log('Starting manual form processing...');
   try {
     const result = processBatchedResponses();
     
     if (result.success) {
       setLastProcessedTimestamp(new Date().toISOString());
+      console.log(`Processing complete. Processed: ${result.processed}/${result.total}`);
     }
     
     return result;
@@ -334,12 +477,19 @@ function processFormResponses() {
   }
 }
 
+/**
+ * Processes all form responses in a batch, generates hash, and sends to API.
+ * This function is called by triggers or manually.
+ * @return {Object} Processing result with success status, hash, and statistics
+ */
 function processBatchedResponses() {
   try {
+    console.log('Processing batched responses...');
     const form = FormApp.getActiveForm();
     const allResponses = form.getResponses();
     
     if (allResponses.length === 0) {
+      console.log('No responses found in form');
       return { 
         success: true, 
         message: "No responses found in form",
@@ -348,10 +498,12 @@ function processBatchedResponses() {
       };
     }
     
+    // Extract data from all responses
     const batchData = allResponses.map(response => 
       FormHandler.extractResponseData(response)
     );
     
+    // Create standardized batch structure
     const batchStructure = {
       formId: form.getId(),
       formTitle: form.getTitle(),
@@ -359,9 +511,13 @@ function processBatchedResponses() {
       responses: batchData
     };
     
+    // Standardize and hash
     const standardizedBatch = standardizeDataForCsvCompatibility(batchStructure);
     const batchHash = Hashing.hashStandardizedData(standardizedBatch);
     
+    console.log(`Generated batch hash for ${batchData.length} responses`);
+    
+    // Prepare metadata
     const metadata = {
       formId: form.getId(),
       responseId: `batch-all-${Date.now()}`,
@@ -375,6 +531,8 @@ function processBatchedResponses() {
       }
     };
     
+    // Send to API
+    console.log('Sending hash to API...');
     const result = ApiClient.sendHashToApi(batchHash, metadata);
     
     if (result.error) {
@@ -387,6 +545,7 @@ function processBatchedResponses() {
       };
     }
     
+    console.log('Batch processing completed successfully');
     return { 
       success: true, 
       hash: batchHash,
@@ -404,9 +563,15 @@ function processBatchedResponses() {
   }
 }
 
+/**
+ * Tests API connection and access token validity.
+ * @return {Object} Test result with success status and message
+ */
 function testApiConnection() {
+  console.log('Testing API connection...');
   try {
     const result = ApiClient.testApiConnection();
+    console.log(`API test result: ${result.success ? 'Success' : 'Failed'}`);
     return result;
   } catch (error) {
     console.error('Error testing API connection:', error);
@@ -417,6 +582,10 @@ function testApiConnection() {
   }
 }
 
+/**
+ * Gets current processing status including response counts and schedule.
+ * @return {Object} Status information including next scheduled run
+ */
 function getProcessingStatus() {
   try {
     const form = FormApp.getActiveForm();
@@ -426,6 +595,7 @@ function getProcessingStatus() {
     
     let nextScheduled = null;
     
+    // Calculate next scheduled processing time
     if (config.enabled && config.frequency !== 'manual') {
       const now = new Date();
       switch (config.frequency) {
@@ -457,7 +627,7 @@ function getProcessingStatus() {
       nextScheduled: nextScheduled ? nextScheduled.toISOString() : null,
       lastProcessed: lastProcessed,
       config: config,
-      hasaccessToken: !!getaccessToken()
+      hasAccessToken: !!getAccessToken()
     };
   } catch (error) {
     console.error('Error getting processing status:', error);
@@ -465,7 +635,17 @@ function getProcessingStatus() {
   }
 }
 
+// ==========================================
+// FORM HANDLER MODULE
+// ==========================================
+
 var FormHandler = (function() {
+  /**
+   * Extracts response data from a FormResponse object in a standardized format.
+   * Handles different question types and ensures consistent ordering.
+   * @param {FormResponse} formResponse - Google Forms response object
+   * @return {Object} Standardized response data structure
+   */
   function extractResponseData(formResponse) {
     const result = {
       responseId: formResponse.getId(),
@@ -482,12 +662,15 @@ var FormHandler = (function() {
         
         let responseValue = itemResponse.getResponse();
         
+        // Normalize response values for different question types
         switch(itemType) {
           case 'CHECKBOX':
+            // Sort checkbox values for consistency
             responseValue = responseValue.slice().sort();
             break;
           case 'GRID':
           case 'CHECKBOX_GRID':
+            // Sort grid response keys for consistency
             if (responseValue && typeof responseValue === 'object') {
               responseValue = Object.keys(responseValue).sort().reduce((obj, key) => {
                 obj[key] = responseValue[key];
@@ -519,28 +702,57 @@ var FormHandler = (function() {
   };
 })();
 
+// ==========================================
+// HASHING MODULE
+// ==========================================
+
 var Hashing = (function() {
+  /**
+   * Hashes response data after standardization.
+   * @param {Object} responseData - Response data to hash
+   * @return {string} SHA-256 hash as hex string
+   */
   function hashResponseData(responseData) {
     const standardized = standardizeDataForCsvCompatibility(responseData);
     return createDeterministicHash(standardized);
   }
   
+  /**
+   * Hashes batch data after standardization.
+   * @param {Object} batchData - Batch data to hash
+   * @return {string} SHA-256 hash as hex string
+   */
   function hashBatchData(batchData) {
     const standardized = standardizeDataForCsvCompatibility(batchData);
     return createDeterministicHash(standardized);
   }
   
+  /**
+   * Hashes already standardized data.
+   * @param {Object} standardizedData - Pre-standardized data
+   * @return {string} SHA-256 hash as hex string
+   */
   function hashStandardizedData(standardizedData) {
     return createDeterministicHash(standardizedData);
   }
   
+  /**
+   * Creates a deterministic SHA-256 hash from data.
+   * Ensures consistent ordering of object keys and array elements.
+   * @param {Object} data - Data to hash
+   * @return {string} SHA-256 hash as 64-character hex string
+   */
   function createDeterministicHash(data) {
+    // Convert to JSON with deterministic key ordering
     const jsonString = JSON.stringify(data, function(key, value) {
+      // Handle arrays
       if (Array.isArray(value)) {
+        // Sort primitive arrays
         if (value.every(item => typeof item !== 'object' || item === null)) {
           return [...value].sort();
         }
         
+        // For arrays of objects, stringify each, sort, then parse back
         return value
           .map(item => JSON.stringify(item, arguments.callee))
           .sort()
@@ -554,6 +766,7 @@ var Hashing = (function() {
           });
       }
       
+      // Handle objects - sort keys alphabetically
       if (value !== null && typeof value === 'object' && !Array.isArray(value)) {
         return Object.keys(value).sort().reduce((obj, k) => {
           obj[k] = value[k];
@@ -564,11 +777,13 @@ var Hashing = (function() {
       return value;
     });
     
+    // Compute SHA-256 hash
     const bytes = Utilities.computeDigest(
       Utilities.DigestAlgorithm.SHA_256, 
       jsonString
     );
     
+    // Convert byte array to hex string
     const hexHash = bytes.map(function(byte) {
       return ('0' + (byte & 0xFF).toString(16)).slice(-2);
     }).join('');

@@ -328,7 +328,7 @@
               <input type="password" id="access-token-input" placeholder="Enter your access token" style="flex: 1;">
             </div>
             <div style="margin-top: 8px;">
-              <button class="btn small-btn" id="saveaccessTokenBtn">Save Access Token</button>
+              <button class="btn small-btn" id="saveAccessTokenBtn">Save Access Token</button>
               <button class="btn secondary-btn small-btn" id="testApiBtn">Test Connection</button>
             </div>
           </div>
@@ -393,22 +393,32 @@
     </div>
 
     <script>
-      // Initialize when page loads
+      /**
+       * Initialize when page loads
+       */
       document.addEventListener('DOMContentLoaded', function() {
+        console.log('NoTamperData sidebar initializing...');
         loadFormInfo();
         loadProcessingStatus();
-        loadSavedAccessToken(); // New function to load and display saved token
+        loadSavedAccessToken();
         updateConfigVisibility();
       });
       
-      // Helper function to mask access token for display
+      /**
+       * Masks access token for display (shows first 3 and last 2 characters)
+       * @param {string} token - The access token to mask
+       * @return {string} Masked token string
+       */
       function maskAccessToken(token) {
         if (!token || token.length < 6) return 'ak_••••••••••••••••';
         return token.substring(0, 3) + '••••••••••••' + token.substring(token.length - 2);
       }
       
-      // Load and display saved access token
+      /**
+       * Loads and displays the saved access token (masked)
+       */
       function loadSavedAccessToken() {
+        console.log('Loading saved access token...');
         google.script.run
           .withSuccessHandler(function(token) {
             const savedDisplay = document.getElementById('saved-token-display');
@@ -417,6 +427,7 @@
             const statusIndicator = document.getElementById('token-status-indicator');
             
             if (token && token.trim() !== '') {
+              console.log('Access token found, displaying masked version');
               // Show masked token display, hide input section
               maskedToken.textContent = maskAccessToken(token);
               savedDisplay.classList.remove('hidden');
@@ -426,6 +437,7 @@
               // Test the connection automatically to update status
               testConnectionSilently();
             } else {
+              console.log('No access token found, showing input section');
               // Show input section, hide token display
               savedDisplay.classList.add('hidden');
               inputSection.classList.remove('hidden');
@@ -439,24 +451,32 @@
             document.getElementById('token-input-section').classList.remove('hidden');
             document.getElementById('token-status-indicator').className = 'status-indicator disconnected';
           })
-          .getaccessToken();
+          .getAccessToken();
       }
       
-      // Silent connection test (doesn't show UI messages)
+      /**
+       * Tests API connection silently (doesn't show UI messages)
+       */
       function testConnectionSilently() {
         google.script.run
           .withSuccessHandler(function(result) {
             const statusIndicator = document.getElementById('token-status-indicator');
-            statusIndicator.className = result.success ? 'status-indicator connected' : 'status-indicator disconnected';
+            statusIndicator.className = result.success ? 
+              'status-indicator connected' : 'status-indicator disconnected';
+            console.log('Silent connection test:', result.success ? 'Success' : 'Failed');
           })
           .withFailureHandler(function(error) {
+            console.error('Silent connection test failed:', error);
             document.getElementById('token-status-indicator').className = 'status-indicator disconnected';
           })
           .testApiConnection();
       }
       
-      // Edit token button handler
+      /**
+       * Edit token button - switches to edit mode
+       */
       document.getElementById('edit-token-btn').addEventListener('click', function() {
+        console.log('Editing access token...');
         google.script.run
           .withSuccessHandler(function(token) {
             const savedDisplay = document.getElementById('saved-token-display');
@@ -469,12 +489,15 @@
             input.value = token || '';
             input.focus();
           })
-          .getaccessToken();
+          .getAccessToken();
       });
       
-      // Remove token button handler
+      /**
+       * Remove token button - deletes saved token
+       */
       document.getElementById('remove-token-btn').addEventListener('click', function() {
         if (confirm('Are you sure you want to remove the saved access token?')) {
+          console.log('Removing access token...');
           google.script.run
             .withSuccessHandler(function(result) {
               if (result.success) {
@@ -487,12 +510,15 @@
             .withFailureHandler(function(error) {
               showMessage('Error removing access token: ' + error, 'error');
             })
-            .removeaccessToken(); // We'll need to add this function to Code.js
+            .removeAccessToken();
         }
       });
       
-      // Load form information
+      /**
+       * Loads and displays form information
+       */
       function loadFormInfo() {
+        console.log('Loading form information...');
         google.script.run
           .withSuccessHandler(function(info) {
             const container = document.getElementById('form-info');
@@ -513,16 +539,21 @@
                 ${info.description}
               </div>
             `;
+            console.log('Form info loaded:', info.title);
           })
           .withFailureHandler(function(error) {
+            console.error('Error loading form info:', error);
             document.getElementById('form-info').innerHTML = 
               '<div class="message error">Error loading form info: ' + error + '</div>';
           })
           .getFormInfo();
       }
       
-      // Load processing status
+      /**
+       * Loads and displays processing status
+       */
       function loadProcessingStatus() {
+        console.log('Loading processing status...');
         google.script.run
           .withSuccessHandler(function(status) {
             const container = document.getElementById('processing-status');
@@ -557,21 +588,29 @@
             }
             
             container.innerHTML = statusHtml;
+            console.log('Processing status loaded');
           })
           .withFailureHandler(function(error) {
+            console.error('Error loading processing status:', error);
             document.getElementById('processing-status').innerHTML = 
               '<div class="message error">Error loading status: ' + error + '</div>';
           })
           .getProcessingStatus();
       }
       
-      // Helper function to get day name from day number
+      /**
+       * Gets day name from day number (0=Sunday, 6=Saturday)
+       * @param {number} dayNumber - Day number
+       * @return {string} Day name
+       */
       function getDayName(dayNumber) {
         const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
         return days[parseInt(dayNumber)] || 'Unknown';
       }
       
-      // Update configuration visibility based on frequency selection
+      /**
+       * Updates configuration visibility based on frequency selection
+       */
       function updateConfigVisibility() {
         const frequency = document.getElementById('frequency-select').value;
         const intervalRow = document.getElementById('interval-row');
@@ -591,7 +630,11 @@
       // Frequency change handler
       document.getElementById('frequency-select').addEventListener('change', updateConfigVisibility);
       
-      // Helper function to show messages
+      /**
+       * Shows a status message to the user
+       * @param {string} message - Message text
+       * @param {string} type - Message type (success, error, info, warning)
+       */
       function showMessage(message, type) {
         const msgElement = document.getElementById('status-message');
         msgElement.textContent = message;
@@ -604,11 +647,14 @@
         }, 5000);
       }
       
-      // Test API Connection
+      /**
+       * Tests API connection with user feedback
+       */
       document.getElementById('testApiBtn').addEventListener('click', function() {
         const apiTestResult = document.getElementById('api-test-result');
         const btn = this;
         
+        console.log('Testing API connection...');
         btn.disabled = true;
         btn.innerHTML = '<span class="loading"></span>Testing...';
         apiTestResult.textContent = 'Testing API connection...';
@@ -620,11 +666,15 @@
             const statusIndicator = document.getElementById('token-status-indicator');
             
             if (result.success) {
-              apiTestResult.innerHTML = '<strong>✓ Connection Successful!</strong><br>' + (result.message || 'Access token is valid and working.');
+              console.log('API connection successful');
+              apiTestResult.innerHTML = '<strong>✓ Connection Successful!</strong><br>' + 
+                (result.message || 'Access token is valid and working.');
               apiTestResult.className = 'message success';
               statusIndicator.className = 'status-indicator connected';
             } else {
-              apiTestResult.innerHTML = '<strong>✗ Connection Failed</strong><br>' + (result.error || 'Unable to connect to API');
+              console.error('API connection failed:', result.error);
+              apiTestResult.innerHTML = '<strong>✗ Connection Failed</strong><br>' + 
+                (result.error || 'Unable to connect to API');
               apiTestResult.className = 'message error';
               statusIndicator.className = 'status-indicator disconnected';
             }
@@ -632,6 +682,7 @@
             btn.innerHTML = 'Test Connection';
           })
           .withFailureHandler(function(error) {
+            console.error('API connection test error:', error);
             apiTestResult.innerHTML = '<strong>✗ Test Failed</strong><br>Error: ' + error;
             apiTestResult.className = 'message error';
             document.getElementById('token-status-indicator').className = 'status-indicator disconnected';
@@ -641,8 +692,10 @@
           .testApiConnection();
       });
       
-      // Save access token - UPDATED to refresh display after saving
-      document.getElementById('saveaccessTokenBtn').addEventListener('click', function() {
+      /**
+       * Saves access token
+       */
+      document.getElementById('saveAccessTokenBtn').addEventListener('click', function() {
         const accessToken = document.getElementById('access-token-input').value.trim();
         
         if (!accessToken) {
@@ -650,31 +703,37 @@
           return;
         }
         
+        console.log('Saving access token...');
         this.disabled = true;
         this.innerHTML = '<span class="loading"></span>Saving...';
         
         google.script.run
           .withSuccessHandler(function(result) {
             if (result.success) {
+              console.log('Access token saved successfully');
               showMessage('Access token saved successfully!', 'success');
               // Clear input and refresh display to show masked token
               document.getElementById('access-token-input').value = '';
               loadSavedAccessToken(); // This will switch to display mode
             } else {
+              console.error('Failed to save access token:', result.error);
               showMessage(result.error || 'Failed to save access token', 'error');
             }
-            document.getElementById('saveaccessTokenBtn').disabled = false;
-            document.getElementById('saveaccessTokenBtn').innerHTML = 'Save Access Token';
+            document.getElementById('saveAccessTokenBtn').disabled = false;
+            document.getElementById('saveAccessTokenBtn').innerHTML = 'Save Access Token';
           })
           .withFailureHandler(function(error) {
+            console.error('Error saving access token:', error);
             showMessage('Error: ' + error, 'error');
-            document.getElementById('saveaccessTokenBtn').disabled = false;
-            document.getElementById('saveaccessTokenBtn').innerHTML = 'Save Access Token';
+            document.getElementById('saveAccessTokenBtn').disabled = false;
+            document.getElementById('saveAccessTokenBtn').innerHTML = 'Save Access Token';
           })
-          .saveaccessToken(accessToken);
+          .saveAccessToken(accessToken);
       });
       
-      // Save configuration
+      /**
+       * Saves batch configuration
+       */
       document.getElementById('saveConfigBtn').addEventListener('click', function() {
         const frequency = document.getElementById('frequency-select').value;
         const interval = parseInt(document.getElementById('interval-input').value) || 3;
@@ -689,21 +748,25 @@
           day: day
         };
         
+        console.log('Saving configuration:', config);
         this.disabled = true;
         this.innerHTML = '<span class="loading"></span>Saving...';
         
         google.script.run
           .withSuccessHandler(function(result) {
             if (result.success) {
+              console.log('Configuration saved successfully');
               showMessage('Configuration saved successfully!', 'success');
               loadProcessingStatus(); // Refresh status
             } else {
+              console.error('Failed to save configuration:', result.error);
               showMessage(result.error || 'Failed to save configuration', 'error');
             }
             document.getElementById('saveConfigBtn').disabled = false;
             document.getElementById('saveConfigBtn').innerHTML = 'Save Configuration';
           })
           .withFailureHandler(function(error) {
+            console.error('Error saving configuration:', error);
             showMessage('Error: ' + error, 'error');
             document.getElementById('saveConfigBtn').disabled = false;
             document.getElementById('saveConfigBtn').innerHTML = 'Save Configuration';
@@ -711,11 +774,14 @@
           .saveBatchConfig(config);
       });
       
-      // Process responses
+      /**
+       * Processes all form responses
+       */
       document.getElementById('processResponsesBtn').addEventListener('click', function() {
         const processResult = document.getElementById('process-result');
         const btn = this;
         
+        console.log('Processing form responses...');
         btn.disabled = true;
         btn.innerHTML = '<span class="loading"></span>Processing...';
         processResult.textContent = 'Processing all responses...';
@@ -725,6 +791,7 @@
         google.script.run
           .withSuccessHandler(function(result) {
             if (result.success) {
+              console.log('Processing successful:', result);
               let hashDisplay = '';
               if (result.hash) {
                 const shortHash = result.hash.substring(0, 16) + '...';
@@ -737,23 +804,18 @@
                 hashDisplay;
               processResult.className = 'message success';
               
-              // Add click event listener for hash links
-              const hashLink = processResult.querySelector('.hash-link');
-              if (hashLink) {
-                hashLink.addEventListener('click', function() {
-                  openVerificationPage(this.dataset.hash);
-                });
-              }
-              
               loadProcessingStatus(); // Refresh status
             } else {
-              processResult.innerHTML = '<strong>✗ Processing Failed</strong><br>' + (result.error || 'Unable to process responses');
+              console.error('Processing failed:', result.error);
+              processResult.innerHTML = '<strong>✗ Processing Failed</strong><br>' + 
+                (result.error || 'Unable to process responses');
               processResult.className = 'message error';
             }
             btn.disabled = false;
             btn.innerHTML = 'Process Responses';
           })
           .withFailureHandler(function(error) {
+            console.error('Processing error:', error);
             processResult.innerHTML = '<strong>✗ Processing Error</strong><br>Error: ' + error;
             processResult.className = 'message error';
             btn.disabled = false;
@@ -762,34 +824,44 @@
           .processFormResponses();
       });
       
-      // Function to open verification page with hash
+      /**
+       * Opens verification page with the given hash
+       * @param {string} hash - The hash to verify
+       */
       function openVerificationPage(hash) {
         const verificationUrl = `https://www.notamperdata.com/verify?hash=${hash}`;
+        console.log('Opening verification page:', verificationUrl);
         window.open(verificationUrl, '_blank');
       }
       
-      // Disable batch processing
+      /**
+       * Disables batch processing
+       */
       document.getElementById('disableBtn').addEventListener('click', function() {
         const config = {
           enabled: false,
           frequency: 'manual'
         };
         
+        console.log('Disabling batch processing...');
         this.disabled = true;
         this.innerHTML = '<span class="loading"></span>Disabling...';
         
         google.script.run
           .withSuccessHandler(function(result) {
             if (result.success) {
+              console.log('Batch processing disabled');
               showMessage('Batch processing disabled', 'info');
               loadProcessingStatus(); // Refresh status
             } else {
+              console.error('Failed to disable processing:', result.error);
               showMessage(result.error || 'Failed to disable processing', 'error');
             }
             document.getElementById('disableBtn').disabled = false;
             document.getElementById('disableBtn').innerHTML = 'Disable Processing';
           })
           .withFailureHandler(function(error) {
+            console.error('Error disabling processing:', error);
             showMessage('Error: ' + error, 'error');
             document.getElementById('disableBtn').disabled = false;
             document.getElementById('disableBtn').innerHTML = 'Disable Processing';
