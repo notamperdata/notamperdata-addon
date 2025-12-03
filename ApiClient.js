@@ -23,7 +23,7 @@ var ApiClient = (function() {
     const payload = {
       hash: hash,
       formId: metadata?.formId || metadata?.form_id,
-      responseId: metadata?.responseId || metadata?.response_id, 
+      responseId: metadata?.responseId, 
       networkId: metadata?.networkId || metadata?.network_id || 0,
       metadata: metadata
     };
@@ -159,7 +159,7 @@ var ApiClient = (function() {
       const params = new URLSearchParams({
         hash: hash,
         formId: metadata?.formId || metadata?.form_id || '',
-        responseId: metadata?.responseId || metadata?.response_id || '',
+        responseId: metadata?.responseId || '',
         networkId: (metadata?.networkId || metadata?.network_id || 0).toString()
       });
       
