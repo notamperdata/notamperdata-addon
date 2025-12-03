@@ -67,7 +67,7 @@ POST /api/storehash
   "hash": "sha256_hash_string",
   "metadata": {
     "formId": "google_form_id",
-    "responseId": "response_id"
+    "timestamp": "2024-01-15T12:34:56.000Z"
   }
 }
 ```
