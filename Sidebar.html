@@ -221,6 +221,7 @@
         border: 1px solid #e0e0e0;
         flex: 1;
         min-width: 0;
+        overflow-x: hidden;
       }
       .access-token-actions {
         display: flex;
@@ -335,6 +336,12 @@
           
           <div id="api-test-result" class="message info hidden"></div>
           <p class="help-text">Required for blockchain verification services.</p>
+          <div class="message info" id="network-info-banner" style="margin-top: 12px;">
+            Network: <strong>Cardano Mainnet</strong> (managed by NoTamperData servers)
+          </div>
+          <p class="help-text">
+            Need to run testnet experiments? Update the API endpoint in Code.js to point at your staging server that uses testnet credentials.
+          </p>
         </div>
       </div>
       
@@ -579,6 +586,22 @@
               statusHtml += '<div class="message info">Manual processing only</div>';
             }
             
+            if (status.network) {
+              statusHtml += `
+                <div style="font-size: 12px; color: #5f6368; margin-top: 8px;">
+                  Network: <strong>${status.network.name}</strong>
+                </div>
+              `;
+              
+              if (status.network.isMainnet) {
+                statusHtml += `
+                  <div class="message warning" style="margin-top: 8px;">
+                    Using Cardano Mainnet. Transactions will spend real ADA fees.
+                  </div>
+                `;
+              }
+            }
+            
             if (status.lastProcessed) {
               statusHtml += `
                 <div style="font-size: 12px; color: #5f6368; margin-top: 8px;">
@@ -606,6 +629,15 @@
       function getDayName(dayNumber) {
         const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
         return days[parseInt(dayNumber)] || 'Unknown';
+      }
+      
+      /**
+       * Returns a friendly network name for display.
+       * @param {number} networkId - 0 for testnet, 1 for mainnet
+       * @return {string} Friendly network name
+       */
+      function getNetworkNameFromId(networkId) {
+        return Number(networkId) === 0 ? 'Cardano Testnet' : 'Cardano Mainnet';
       }
       
       /**
@@ -800,7 +832,8 @@
               
               processResult.innerHTML = 
                 '<strong>✓ Processing Successful!</strong><br>' +
-                'Processed: ' + result.processed + ' responses' +
+                'Processed: ' + result.processed + ' responses<br>' +
+                'Network: ' + getNetworkNameFromId(result.networkId) +
                 hashDisplay;
               processResult.className = 'message success';
               

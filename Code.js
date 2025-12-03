@@ -8,6 +8,11 @@ const ADDON_VERSION = "1.1.0";
 const BATCH_CONFIG_KEY = "NoTamperData_BATCH_CONFIG";
 const ACCESS_TOKEN_CONFIG_KEY = "NoTamperData_Access_Token";
 const LAST_PROCESSED_KEY = "NoTamperData_LAST_PROCESSED";
+const DEFAULT_NETWORK_SETTINGS = {
+  networkId: 1,
+  name: 'Cardano Mainnet',
+  isMainnet: true
+};
 
 // ==========================================
 // ADD-ON LIFECYCLE HANDLERS
@@ -185,6 +190,23 @@ function removeAccessToken() {
     console.error('Error removing access token:', error);
     return { success: false, error: error.toString() };
   }
+}
+
+// ==========================================
+// NETWORK SETTINGS (FIXED MAINNET)
+// ==========================================
+
+/**
+ * Returns the default network settings used by the add-on.
+ * Network selection is handled server-side; this add-on always labels data as mainnet.
+ * @return {Object} Network settings
+ */
+function getNetworkSettings() {
+  return {
+    networkId: DEFAULT_NETWORK_SETTINGS.networkId,
+    name: DEFAULT_NETWORK_SETTINGS.name,
+    isMainnet: DEFAULT_NETWORK_SETTINGS.isMainnet
+  };
 }
 
 // ==========================================
@@ -487,6 +509,7 @@ function processBatchedResponses() {
     console.log('Processing batched responses...');
     const form = FormApp.getActiveForm();
     const allResponses = form.getResponses();
+    const networkSettings = getNetworkSettings();
     
     if (allResponses.length === 0) {
       console.log('No responses found in form');
@@ -522,6 +545,8 @@ function processBatchedResponses() {
       formId: form.getId(),
       responseId: `batch-all-${Date.now()}`,
       timestamp: new Date().toISOString(),
+      networkId: networkSettings.networkId,
+      networkName: networkSettings.name,
       batchInfo: {
         responseCount: batchData.length,
         firstResponseId: batchData.length > 0 ? batchData[0]?.responseId : null,
@@ -551,7 +576,8 @@ function processBatchedResponses() {
       hash: batchHash,
       processed: allResponses.length,
       total: allResponses.length,
-      processingType: "all_responses_standardized"
+      processingType: "all_responses_standardized",
+      networkId: networkSettings.networkId
     };
   } catch (error) {
     console.error(`Error in batch processing: ${error.toString()}`);
@@ -592,6 +618,7 @@ function getProcessingStatus() {
     const allResponses = form.getResponses();
     const config = getBatchConfig();
     const lastProcessed = getLastProcessedTimestamp();
+    const networkSettings = getNetworkSettings();
     
     let nextScheduled = null;
     
@@ -627,7 +654,8 @@ function getProcessingStatus() {
       nextScheduled: nextScheduled ? nextScheduled.toISOString() : null,
       lastProcessed: lastProcessed,
       config: config,
-      hasAccessToken: !!getAccessToken()
+      hasAccessToken: !!getAccessToken(),
+      network: networkSettings
     };
   } catch (error) {
     console.error('Error getting processing status:', error);
