@@ -337,7 +337,7 @@
           <div id="api-test-result" class="message info hidden"></div>
           <p class="help-text">Required for blockchain verification services.</p>
           <div class="message info" id="network-info-banner" style="margin-top: 12px;">
-            Network: <strong>Cardano Mainnet</strong> (managed by NoTamperData servers)
+            <strong>Cardano Mainnet</strong>
           </div>
         </div>
       </div>
@@ -590,10 +590,10 @@
                 </div>
               `;
               
-              if (status.network.isMainnet) {
+            if (status.network.isMainnet) {
                 statusHtml += `
-                  <div class="message warning" style="margin-top: 8px;">
-                    Using Cardano Mainnet. Transactions will spend real ADA fees.
+                  <div class="message info" style="margin-top: 8px;">
+                    Network: Cardano Mainnet
                   </div>
                 `;
               }
